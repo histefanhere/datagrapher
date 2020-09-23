@@ -23,21 +23,13 @@ function submitFile() {
 }
 
 function parseComplete(results, file) {
+    // These are fields we KNOW do not contain data we want to show
     ignoreFields = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time"];
    
     let fields = results.meta.fields;
-    let relevantFields = [];
+    // filter out the fields in ignoreFields
+    let relevantFields = fields.filter((field) => { return !ignoreFields.includes(field); });
     let fieldData = {};
-
-    for (const field of fields) {
-        if (ignoreFields.includes(field)) {
-            continue;
-        }
-        else {
-            relevantFields.push(field);
-            fieldData[field] = [];
-        }
-    }
 
     let data = results.data;
 
@@ -59,12 +51,16 @@ function parseComplete(results, file) {
         return mapUNIXToString(unix_timestamp);
     }
 
+    // `x` becomes the x-axis of our plots, Strings representing the datetime of the datapoint that Plotly knows how to parse
     let x = data.map(mapRowToUNIXString);
 
+    // Take the data out of relevantFiels and into fieldData
+    // TODO: Optimize Somehow?
     for (const field of relevantFields) {
         fieldData[field] = data.map((row) => {return row[field]; });
     }
 
+    // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
     for (const field of relevantFields) {
         plotData.push({
@@ -76,6 +72,7 @@ function parseComplete(results, file) {
             mode: 'lines+markers'
         });
     }
+    // Layout and config data for the plot
     let layout = {
         title: file.name,
         legend: {
