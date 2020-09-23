@@ -1,2 +1,21 @@
-body {
+* {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+$form-colour: #eee;
+
+form {
+    display: inline-block;
+    margin: 0 auto;
+
+    padding: 0.7em;
+    
+    border: 1px solid #888;
+    border-radius: 1em;
+
+    background-color: $form-colour;
+
+    input {
+        margin: 3px 0;
+    }
 }

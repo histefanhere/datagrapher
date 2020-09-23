@@ -1,3 +1,16 @@
+defaultColors = [
+    '#1f77b4',  // muted blue
+    '#ff7f0e',  // safety orange
+    '#2ca02c',  // cooked asparagus green
+    '#d62728',  // brick red
+    '#9467bd',  // muted purple
+    '#8c564b',  // chestnut brown
+    '#e377c2',  // raspberry yogurt pink
+    '#7f7f7f',  // middle gray
+    '#bcbd22',  // curry yellow-green
+    '#17becf'   // blue-teal
+];
+
 function submitFile() {
     // Called when the user clicks the "Show" button and wishes to plot the given
     // datafile
@@ -62,19 +75,26 @@ function parseComplete(results, file) {
 
     // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
+    let colori = 0;
     for (const field of relevantFields) {
         plotData.push({
-            line: {shape: 'spline'},
+            line: {
+                shape: 'spline',
+                color: defaultColors[colori]
+            },
             x: x,
             y: fieldData[field],
             type: 'scatter',
             name: field,
-            mode: 'lines+markers'
+            mode: 'lines+markers',
         });
+        colori = (colori + 1) % 10;
     }
     // Layout and config data for the plot
     let layout = {
-        title: file.name,
+        title: {
+            text: file.name
+        },
         showlegend: true,
         legend: {
             font: {size: 16}
@@ -94,7 +114,6 @@ function parseComplete(results, file) {
 
     Plotly.newPlot('mainPlot', plotData, layout, config);
 
-    // TODO: Have the extra plots have the same colour as the original lines
     // TODO: Use subplots?
 
     let multiplePlots = document.getElementById("multiplePlotsInput").checked;
@@ -111,7 +130,13 @@ function parseComplete(results, file) {
 
         for (const singlePlotData of plotData) {
             let id = `${singlePlotData.name}Plot`;
+
+            let oldLayoutTitle = layout.title.text;
+            layout.title.text = `${layout.title.text} - ${singlePlotData.name}`;
+
             Plotly.newPlot(document.getElementById(id), [singlePlotData], layout, config);
+
+            layout.title.text = oldLayoutTitle;
         }
     }
 
