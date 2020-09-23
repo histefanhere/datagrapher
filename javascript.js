@@ -27,6 +27,9 @@ function submitFile() {
         // Enables Comments
         comments: "#",
 
+        // If our file might need some post-processing, it will be done here
+        beforeFirstChunk: processChunk,
+
         // For some reason it was reading a blank data field as the last value, so this fixes that
         skipEmptyLines: true,
         // Callbacks
@@ -35,10 +38,46 @@ function submitFile() {
     });
 }
 
+function processChunk(chunk) {
+    // My client gave me a very specific type of file he wanted me to make the grapher compatible with.
+    // The way we detect if we've been given that specific filetype is if it has`Date/Time` in it.
+    // If it does, we do some very specific REGEX processing on it.
+    for (let i = 0; i < chunk.length - "Date/Time".length; i++) {
+        let substr = chunk.substring(i, i + "Date/Time".length);
+        if (substr == "Date/Time") {
+            let newChunk = chunk.substring(i, chunk.length);
+            // The date format in the file is DD/MM/YY, but we need YY-MM-DD
+            newChunk = newChunk.replace(/(\d+)\/(\d+)\/(\d+)/g, '$3-$2-$1');
+
+            // The timestamps in the file have AM and PM in them, so we need to get rid of them.
+            // Also, we need to add 12 Hours to the PM values to convert them properlly to 24 hour format
+            newChunk = newChunk.replace(/ 12:(\d+):(\d+) AM/g, ' 0:$1:$2');
+            newChunk = newChunk.replace(/ AM/g, "");
+            newChunk = newChunk.replace(/ 12:(\d+):(\d+) PM/g, ' 12:$1:$2');
+            newChunk = newChunk.replace(/ 1:(\d+):(\d+) PM/g, ' 13:$1:$2');
+            newChunk = newChunk.replace(/ 2:(\d+):(\d+) PM/g, ' 14:$1:$2');
+            newChunk = newChunk.replace(/ 3:(\d+):(\d+) PM/g, ' 15:$1:$2');
+            newChunk = newChunk.replace(/ 4:(\d+):(\d+) PM/g, ' 16:$1:$2');
+            newChunk = newChunk.replace(/ 5:(\d+):(\d+) PM/g, ' 17:$1:$2');
+            newChunk = newChunk.replace(/ 6:(\d+):(\d+) PM/g, ' 18:$1:$2');
+            newChunk = newChunk.replace(/ 7:(\d+):(\d+) PM/g, ' 19:$1:$2');
+            newChunk = newChunk.replace(/ 8:(\d+):(\d+) PM/g, ' 20:$1:$2');
+            newChunk = newChunk.replace(/ 9:(\d+):(\d+) PM/g, ' 21:$1:$2');
+            newChunk = newChunk.replace(/ 10:(\d+):(\d+) PM/g, ' 22:$1:$2');
+            newChunk = newChunk.replace(/ 11:(\d+):(\d+) PM/g, ' 23:$1:$2');
+
+            // for SOME REASON, a single line has \r\n in it
+            newChunk = newChunk.replace(/\r/g, '');
+
+            return newChunk;
+        }
+    }
+}
+
 function parseComplete(results, file) {
     // These are fields we KNOW do not contain data we want to show
-    ignoreFields = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time"];
-   
+    ignoreFields = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
+
     let fields = results.meta.fields;
     // filter out the fields in ignoreFields
     let relevantFields = fields.filter((field) => { return !ignoreFields.includes(field); });
@@ -61,6 +100,9 @@ function parseComplete(results, file) {
 
     function mapRowToUNIXString(row) {
         let unix_timestamp = row['UNIX'] || row['Epoch_UTC'];
+        if (!(row['Date/Time'] == null)) {
+            return row['Date/Time'];
+        }
         return mapUNIXToString(unix_timestamp);
     }
 
@@ -72,6 +114,9 @@ function parseComplete(results, file) {
     for (const field of relevantFields) {
         fieldData[field] = data.map((row) => {return row[field]; });
     }
+
+    // Smooth the data if necessary
+    // TODO: Smooth
 
     // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
