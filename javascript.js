@@ -41,14 +41,8 @@ function parseComplete(results, file) {
 
     let data = results.data;
 
-    let x = [];
-
-    for (const row of data) {
-        let unix_timestamp = row['UNIX'] || row['Epoch_UTC'];
+    function mapUNIXToString(unix_timestamp) {
         let date = new Date(unix_timestamp * 1000);
-
-        // Plotly doesn't like this format of String datetime
-        //x.push(date.toUTCString());
        
         // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
         let hours = "0" + date.getUTCHours();
@@ -57,11 +51,18 @@ function parseComplete(results, file) {
         let days = "0" + date.getUTCDate();
         let month = "0" + (date.getUTCMonth() + 1);
         let year = date.getUTCFullYear();
-        x.push(year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2));
+        return year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
+    }
 
-        for (const field of relevantFields) {
-            fieldData[field].push(row[field]); 
-        }
+    function mapRowToUNIXString(row) {
+        let unix_timestamp = row['UNIX'] || row['Epoch_UTC'];
+        return mapUNIXToString(unix_timestamp);
+    }
+
+    let x = data.map(mapRowToUNIXString);
+
+    for (const field of relevantFields) {
+        fieldData[field] = data.map((row) => {return row[field]; });
     }
 
     let plotData = [];
