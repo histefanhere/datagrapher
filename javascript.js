@@ -75,6 +75,7 @@ function parseComplete(results, file) {
     // Layout and config data for the plot
     let layout = {
         title: file.name,
+        showlegend: true,
         legend: {
             font: {size: 16}
         },
@@ -91,7 +92,29 @@ function parseComplete(results, file) {
         displaylogo: false
     };
 
-    Plotly.newPlot('graph', plotData, layout, config);
+    Plotly.newPlot('mainPlot', plotData, layout, config);
+
+    // TODO: Have the extra plots have the same colour as the original lines
+    // TODO: Use subplots?
+
+    let multiplePlots = document.getElementById("multiplePlotsInput").checked;
+    let extraPlots = document.getElementById("extraPlots");
+    extraPlots.innerHTML = "";
+    if (multiplePlots) {
+        // For each of the plots, we need to generate a DIV element and make a new Plotly plot
+        for (const singlePlotData of plotData) {
+            let id = `${singlePlotData.name}Plot`;
+            let template = `<div id="${id}" class="plot"></div>\n`;
+
+            extraPlots.innerHTML += template;
+        }
+
+        for (const singlePlotData of plotData) {
+            let id = `${singlePlotData.name}Plot`;
+            Plotly.newPlot(document.getElementById(id), [singlePlotData], layout, config);
+        }
+    }
+
 }
 
 function parseError(error, file) {

@@ -13,9 +13,14 @@
         <form id="csvform">
             <label for="csv">Choose a CSV file:</label>
             <input type="file" id="csv" name="csv" multiple=false>
+
+            <input type="checkbox" id="multiplePlotsInput" name="multiplePlotsInput">
+            <label for="multiplePlotsInput">Multiple Plots?</label>
+
             <input type="button" onclick="submitFile()" value="Show">
         </form>
 
-        <div id="graph"></div>
+        <div id="mainPlot" class="plot"></div>
+        <div id="extraPlots"></div>
     </body>
 </html>
