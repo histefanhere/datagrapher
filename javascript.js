@@ -116,7 +116,21 @@ function parseComplete(results, file) {
     }
 
     // Smooth the data if necessary
-    // TODO: Smooth
+    let smooth = document.getElementById("smoothedInput").checked;
+    if (smooth) {
+        let smoothFactor = parseInt(document.getElementById("smoothedSliderInput").value);
+        for (const field of relevantFields) {
+            fieldData[field] = smoothArray(fieldData[field], smoothFactor);
+        }
+    }
+
+    // Dictates whether markers will be drawn or not
+    // Runs MUCH faster if disabled
+    let drawMode = "lines";
+    let markers = document.getElementById("markersInput").checked;
+    if (markers) {
+        drawMode += "+markers"
+    }
 
     // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
@@ -131,10 +145,11 @@ function parseComplete(results, file) {
             y: fieldData[field],
             type: 'scatter',
             name: field,
-            mode: 'lines+markers',
+            mode: drawMode,
         });
         colori = (colori + 1) % 10;
     }
+
     // Layout and config data for the plot
     let layout = {
         title: {
@@ -190,3 +205,31 @@ function parseComplete(results, file) {
 function parseError(error, file) {
     console.log(error);
 }
+
+function smoothArray(origArr, n) {
+    let arr = origArr;
+    for (let i = 0; i < n; i++) {
+        let newArr = [];
+        newArr[0] = arr[0];
+        for (let j = 1; j < arr.length; j++) {
+            newArr[j] = (arr[j-1] + 2*arr[j] + arr[j+1]) / 4;
+        }
+        newArr[newArr.length-1] = arr[arr.length-1];
+        arr = newArr;
+    }
+    return arr;
+}
+
+// This handles the smoothed Input slider toggled visibility via it's checkbox
+// TODO: If we use JQuery this part here could be a lot nicer
+var smoothedInput = document.getElementById("smoothedInput");
+var smoothedSliderDiv = document.getElementById("smoothedSliderDiv");
+smoothedInput.addEventListener('change', () => {
+    if (smoothedInput.checked) {
+        smoothedSliderDiv.classList.remove('hidden');
+    }
+    else {
+        smoothedSliderDiv.classList.add('hidden');
+    }
+});
+

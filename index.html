@@ -7,7 +7,7 @@
         <script src="papaparse.min.js"></script>
 
         <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script>
-        <script src="javascript.js"></script>
+        <script src="javascript.js" async></script>
     </head>
     <body>
         <form id="csvform">
@@ -15,14 +15,22 @@
             <input type="file" id="csv" name="csv" multiple=false>
 
             <div>
-                <input type="checkbox" id="multiplePlotsInput" name="multiplePlotsInput">
+                <input type="checkbox" id="multiplePlotsInput" name="multiplePlotsInput" autocomplete="off">
                 <label for="multiplePlotsInput">Multiple Plots</label>
             </div>
 
-            <!--div>
-                <input type="checkbox" id="smoothedInput" name="smoothedInput">
+            <div>
+                <input type="checkbox" id="markersInput" name="markersInput" autocomplete="off">
+                <label for="markersInput">Show Markers (dots)</label>
+            </div>
+
+            <div>
+                <input type="checkbox" id="smoothedInput" name="smoothedInput" autocomplete="off">
                 <label for="smoothedInput">Smooth Input</label>
-            </div-->
+            </div>
+            <div id="smoothedSliderDiv" class="hidden">
+                <input type="range" id="smoothedSliderInput" name="smoothedSliderInput" min="0" max="60" step="1" value="10" autocomplete="off">
+            </div>
 
             <input type="button" onclick="submitFile()" value="Show">
         </form>
