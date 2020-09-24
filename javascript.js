@@ -103,6 +103,12 @@ function parseComplete(results, file) {
         if (!(row['Date/Time'] == null)) {
             return row['Date/Time'];
         }
+
+        if (file.name.includes(".edf")) {
+            // FIX FOR EDF files - we need to add +12 Hours to convert to propper timezone!
+            unix_timestamp = unix_timestamp + 60 * 60 * 12
+        }
+
         return mapUNIXToString(unix_timestamp);
     }
 
