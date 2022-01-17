@@ -11,37 +11,43 @@ defaultColors = [
     '#17becf'   // blue-teal
 ];
 
-function submitFile() {
-    // Called when the user clicks the "Show" button and wishes to plot the given
-    // datafile
 
+/*
+Called when the user clicks the "Show" button and wishes to plot the given datafile
+*/
+function submitFile() {
     var csv = document.getElementById("csv");
+
     // We can access the FileList object and want the one (and only) file in it
     var file = csv.files[0];
 
     Papa.parse(file, {
+
         // File has a header line
         header: true,
+
         // Convert to propper types instead of leaving as strings
         dynamicTyping: true,
-        // Enables Comments
-        comments: "#",
 
         // If our file might need some post-processing, it will be done here
         beforeFirstChunk: processChunk,
 
         // For some reason it was reading a blank data field as the last value, so this fixes that
         skipEmptyLines: true,
-        // Callbacks
+        
+        comments: "#",
         complete: parseComplete,
         error: parseError
     });
 }
 
+
+/*
+My client gave me a very specific type of file he wanted me to make the grapher compatible with.
+The way we detect if we've been given that specific filetype is if it has`Date/Time` in it.
+If it does, we do some very specific REGEX processing on it.
+*/
 function processChunk(chunk) {
-    // My client gave me a very specific type of file he wanted me to make the grapher compatible with.
-    // The way we detect if we've been given that specific filetype is if it has`Date/Time` in it.
-    // If it does, we do some very specific REGEX processing on it.
     for (let i = 0; i < chunk.length - "Date/Time".length; i++) {
         let substr = chunk.substring(i, i + "Date/Time".length);
         if (substr == "Date/Time") {
@@ -74,14 +80,19 @@ function processChunk(chunk) {
     }
 }
 
+
+/*
+Called when parsing of the CSV file is complete.
+We want to do some more post-processing on the data before finally displaying it in plots.
+*/
 function parseComplete(results, file) {
     // These are fields we KNOW do not contain data we want to show
-    ignoreFields = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
+    let ignoreKeys = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
 
-    let fields = results.meta.fields;
+    let keys = results.meta.fields;
     // filter out the fields in ignoreFields
-    let relevantFields = fields.filter((field) => { return !ignoreFields.includes(field); });
-    let fieldData = {};
+    let relevantKeys = keys.filter((field) => { return !ignoreKeys.includes(field); });
+    let keyData = {};
 
     let data = results.data;
 
@@ -117,16 +128,16 @@ function parseComplete(results, file) {
 
     // Take the data out of relevantFiels and into fieldData
     // TODO: Optimize Somehow?
-    for (const field of relevantFields) {
-        fieldData[field] = data.map((row) => {return row[field]; });
+    for (const key of relevantKeys) {
+        keyData[key] = data.map((row) => {return row[key]; });
     }
 
     // Smooth the data if necessary
     let smooth = document.getElementById("smoothedInput").checked;
     if (smooth) {
         let smoothFactor = parseInt(document.getElementById("smoothedSliderInput").value);
-        for (const field of relevantFields) {
-            fieldData[field] = smoothArray(fieldData[field], smoothFactor);
+        for (const key of relevantKeys) {
+            keyData[key] = smoothArray(keyData[key], smoothFactor);
         }
     }
 
@@ -141,16 +152,16 @@ function parseComplete(results, file) {
     // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
     let colori = 0;
-    for (const field of relevantFields) {
+    for (const key of relevantKeys) {
         plotData.push({
             line: {
                 shape: 'spline',
                 color: defaultColors[colori]
             },
             x: x,
-            y: fieldData[field],
+            y: keyData[key],
             type: 'scatter',
-            name: field,
+            name: key,
             mode: drawMode,
         });
         colori = (colori + 1) % 10;
@@ -178,40 +189,46 @@ function parseComplete(results, file) {
         displaylogo: false
     };
 
-    Plotly.newPlot('mainPlot', plotData, layout, config);
+    if (document.getElementById("singlePlotInput").checked) {
+        Plotly.newPlot('mainPlot', plotData, layout, config);
+    }
 
     // TODO: Use subplots?
 
-    let multiplePlots = document.getElementById("multiplePlotsInput").checked;
     let extraPlots = document.getElementById("extraPlots");
     extraPlots.innerHTML = "";
-    if (multiplePlots) {
-        // For each of the plots, we need to generate a DIV element and make a new Plotly plot
-        for (const singlePlotData of plotData) {
-            let id = `${singlePlotData.name}Plot`;
-            let template = `<div id="${id}" class="plot"></div>\n`;
+    // For each of the plots, we need to generate a DIV element and make a new Plotly plot
+    for (const singlePlotData of plotData) {
+        let id = `${singlePlotData.name}Plot`;
+        let template = `<div id="${id}" class="plot"></div>\n`;
 
-            extraPlots.innerHTML += template;
-        }
-
-        for (const singlePlotData of plotData) {
-            let id = `${singlePlotData.name}Plot`;
-
-            let oldLayoutTitle = layout.title.text;
-            layout.title.text = `${layout.title.text} - ${singlePlotData.name}`;
-
-            Plotly.newPlot(document.getElementById(id), [singlePlotData], layout, config);
-
-            layout.title.text = oldLayoutTitle;
-        }
+        extraPlots.innerHTML += template;
     }
 
+    for (const singlePlotData of plotData) {
+        let id = `${singlePlotData.name}Plot`;
+
+        let oldLayoutTitle = layout.title.text;
+        layout.title.text = `${layout.title.text} - ${singlePlotData.name}`;
+
+        Plotly.newPlot(document.getElementById(id), [singlePlotData], layout, config);
+
+        layout.title.text = oldLayoutTitle;
+    }
 }
 
+
+/*
+Called if papaparse encounters an error when parsing a file.
+*/
 function parseError(error, file) {
     console.log(error);
 }
 
+
+/*
+Function to smooth an array of data points by averaging adjacent datapoints n times.
+*/
 function smoothArray(origArr, n) {
     let arr = origArr;
     for (let i = 0; i < n; i++) {
@@ -225,6 +242,7 @@ function smoothArray(origArr, n) {
     }
     return arr;
 }
+
 
 // This handles the smoothed Input slider toggled visibility via it's checkbox
 // TODO: If we use JQuery this part here could be a lot nicer
