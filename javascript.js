@@ -1,4 +1,4 @@
-defaultColors = [
+const defaultColours = [
     '#1f77b4',  // muted blue
     '#ff7f0e',  // safety orange
     '#2ca02c',  // cooked asparagus green
@@ -11,6 +11,8 @@ defaultColors = [
     '#17becf'   // blue-teal
 ];
 
+// These are fields we KNOW do not contain data we want to show
+const ignoreKeys = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
 
 /*
 Called when the user clicks the "Show" button and wishes to plot the given datafile
@@ -86,9 +88,6 @@ Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
 function parseComplete(results, file) {
-    // These are fields we KNOW do not contain data we want to show
-    let ignoreKeys = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
-
     let keys = results.meta.fields;
     // filter out the fields in ignoreFields
     let relevantKeys = keys.filter((field) => { return !ignoreKeys.includes(field); });
@@ -151,12 +150,12 @@ function parseComplete(results, file) {
 
     // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
-    let colori = 0;
+    let colouri = 0;
     for (const key of relevantKeys) {
         plotData.push({
             line: {
                 shape: 'spline',
-                color: defaultColors[colori]
+                color: defaultColours[colouri]
             },
             x: x,
             y: keyData[key],
@@ -164,13 +163,42 @@ function parseComplete(results, file) {
             name: key,
             mode: drawMode,
         });
-        colori = (colori + 1) % 10;
+        colouri = (colouri + 1) % defaultColours.length;
     }
 
-    // Layout and config data for the plot
+    if (document.getElementById("singlePlotInput").checked) {
+        let layoutAndConfig = generateLayoutAndConfig(file.name);
+        Plotly.newPlot('mainPlot', plotData, layoutAndConfig.layout, layoutAndConfig.config);
+    }
+
+    // TODO: Use subplots?
+
+    let extraPlots = document.getElementById("extraPlots");
+    extraPlots.innerHTML = "";
+    // For each of the plots, we need to generate a DIV element and make a new Plotly plot
+    for (const singlePlotData of plotData) {
+        let id = `${singlePlotData.name}Plot`;
+        let template = `<div id="${id}" class="plot"></div>\n`;
+
+        extraPlots.innerHTML += template;
+    }
+
+    for (const singlePlotData of plotData) {
+        let id = `${singlePlotData.name}Plot`;
+
+        let layoutAndConfig = generateLayoutAndConfig(`${file.name} - ${singlePlotData.name}`)
+        Plotly.newPlot(document.getElementById(id), [singlePlotData], layoutAndConfig.layout, layoutAndConfig.config);
+    }
+}
+
+
+/*
+Generates the layout and config objects for the Plotly plots.
+*/
+function generateLayoutAndConfig(plotTitle) {
     let layout = {
         title: {
-            text: file.name
+            text: plotTitle
         },
         showlegend: true,
         legend: {
@@ -189,39 +217,17 @@ function parseComplete(results, file) {
         displaylogo: false
     };
 
-    if (document.getElementById("singlePlotInput").checked) {
-        Plotly.newPlot('mainPlot', plotData, layout, config);
-    }
-
-    // TODO: Use subplots?
-
-    let extraPlots = document.getElementById("extraPlots");
-    extraPlots.innerHTML = "";
-    // For each of the plots, we need to generate a DIV element and make a new Plotly plot
-    for (const singlePlotData of plotData) {
-        let id = `${singlePlotData.name}Plot`;
-        let template = `<div id="${id}" class="plot"></div>\n`;
-
-        extraPlots.innerHTML += template;
-    }
-
-    for (const singlePlotData of plotData) {
-        let id = `${singlePlotData.name}Plot`;
-
-        let oldLayoutTitle = layout.title.text;
-        layout.title.text = `${layout.title.text} - ${singlePlotData.name}`;
-
-        Plotly.newPlot(document.getElementById(id), [singlePlotData], layout, config);
-
-        layout.title.text = oldLayoutTitle;
-    }
+    return {
+        "layout": layout,
+        "config": config
+    };
 }
 
 
 /*
 Called if papaparse encounters an error when parsing a file.
 */
-function parseError(error, file) {
+function parseError(error, _file) {
     console.log(error);
 }
 
