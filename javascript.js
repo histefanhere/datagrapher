@@ -14,6 +14,7 @@ const defaultColours = [
 // These are fields we KNOW do not contain data we want to show
 const ignoreKeys = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
 
+
 /*
 Called when the user clicks the "Show" button and wishes to plot the given datafile
 */
@@ -126,7 +127,6 @@ function parseComplete(results, file) {
     let x = data.map(mapRowToUNIXString);
 
     // Take the data out of relevantFiels and into fieldData
-    // TODO: Optimize Somehow?
     for (const key of relevantKeys) {
         keyData[key] = data.map((row) => {return row[key]; });
     }
@@ -166,29 +166,39 @@ function parseComplete(results, file) {
         colouri = (colouri + 1) % defaultColours.length;
     }
 
+    // Clear all existing plots
+    document.getElementById('plots').innerHTML = '';
+
+
     if (document.getElementById("singlePlotInput").checked) {
+        generateNewPlotDiv('combinedPlot');
+
         let layoutAndConfig = generateLayoutAndConfig(file.name);
-        Plotly.newPlot('mainPlot', plotData, layoutAndConfig.layout, layoutAndConfig.config);
+        Plotly.newPlot('combinedPlot', plotData, layoutAndConfig.layout, layoutAndConfig.config);
     }
 
-    // TODO: Use subplots?
-
-    let extraPlots = document.getElementById("extraPlots");
-    extraPlots.innerHTML = "";
     // For each of the plots, we need to generate a DIV element and make a new Plotly plot
     for (const singlePlotData of plotData) {
         let id = `${singlePlotData.name}Plot`;
-        let template = `<div id="${id}" class="plot"></div>\n`;
-
-        extraPlots.innerHTML += template;
+        generateNewPlotDiv(id);
     }
 
     for (const singlePlotData of plotData) {
         let id = `${singlePlotData.name}Plot`;
 
         let layoutAndConfig = generateLayoutAndConfig(`${file.name} - ${singlePlotData.name}`)
-        Plotly.newPlot(document.getElementById(id), [singlePlotData], layoutAndConfig.layout, layoutAndConfig.config);
+        Plotly.newPlot(id, [singlePlotData], layoutAndConfig.layout, layoutAndConfig.config);
     }
+}
+
+
+/*
+Generates a new div element for a new plot
+*/
+function generateNewPlotDiv(id) {
+    let template = `<div id="${id}" class="plot"></div>\n`;
+
+    document.getElementById("plots").innerHTML += template;
 }
 
 
@@ -214,7 +224,8 @@ function generateLayoutAndConfig(plotTitle) {
     let config = {
         editable: true,
         displayModeBar: true,
-        displaylogo: false
+        displaylogo: false,
+        responsive: true
     };
 
     return {
@@ -251,7 +262,6 @@ function smoothArray(origArr, n) {
 
 
 // This handles the smoothed Input slider toggled visibility via it's checkbox
-// TODO: If we use JQuery this part here could be a lot nicer
 var smoothedInput = document.getElementById("smoothedInput");
 var smoothedSliderDiv = document.getElementById("smoothedSliderDiv");
 smoothedInput.addEventListener('change', () => {
@@ -262,4 +272,3 @@ smoothedInput.addEventListener('change', () => {
         smoothedSliderDiv.classList.add('hidden');
     }
 });
-
