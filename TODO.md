@@ -3,10 +3,13 @@
 - Use JQuery to make the smooth input slider visibility nicer
 - Use subplots
   - Makes everything zoom in together
+  - OR multiple "synced" plots like in [this S.O. answer](https://stackoverflow.com/a/48192606/7718130)
 - Optimize taking out data from relevantKeys into keyData
 - Multiple file support
   - Datetime manipulation!?!?
+  - Parse them like in [this S.O thread](https://stackoverflow.com/questions/29410435) but probably better from [this medium article using promises](https://medium.com/@kishanvikani/parse-multiple-files-using-papa-parse-and-perform-some-synchronous-task-2db18e531ede)
 - Switch to [Chart.js](https://github.com/chartjs/Chart.js)!?!?!?
+- We can have a list of keys we recognize and pretty print them with a "dictionary"
 
 # Completed
 
