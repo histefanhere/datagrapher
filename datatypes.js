@@ -41,6 +41,16 @@ const QuantityTypes = [
     }
 ];
 
+
+function getQuantity(quantityId) {
+    for (const quantity of QuantityTypes) {
+        if (quantity.id === quantityId) {
+            return quantity;
+        }
+    }
+}
+
+
 const SensorTypes = [
     {
         id: 'bmp680',
@@ -101,3 +111,11 @@ const SensorTypes = [
         ]
     }
 ];
+
+function getSensor(sensorId) {
+    for (const sensor of SensorTypes) {
+        if (sensor.id === sensorId) {
+            return sensor;
+        }
+    }
+}

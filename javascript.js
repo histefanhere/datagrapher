@@ -27,6 +27,20 @@ let plots = {
         }
 
         // no plot exists for that quantity, lets make one!
+        let plot = {
+            quantityId: quantityId,
+            lines: [],
+            addLine: function (key, sensorId, x, y) {
+                this.lines.push({
+                    key: key,
+                    sensorId: sensorId,
+                    x: x,
+                    y: y
+                });
+            }
+        };
+        this.plots.push(plot);
+        return plot;
     }
 };
 
@@ -106,6 +120,10 @@ We want to do some more post-processing on the data before finally displaying it
 */
 function parseComplete(results, file) {
 
+    // Clear all existing plots
+    document.getElementById('plots').innerHTML = '';
+    plots.plots = [];
+
     // `x` becomes the x-axis of our plots, Strings representing the datetime of the datapoint that Plotly knows how to parse
     let x = [];
     for (const row of results.data) {
@@ -136,7 +154,7 @@ function parseComplete(results, file) {
     let keys = results.meta.fields.filter((field) => { return !keysToIgnore.includes(field); });
     let fileData = {};
 
-    // Take the data out of relevantFiels and into fieldData
+    // For each of the interesting keys, take out all the data for that key from the table and into a single array in fileData
     for (const key of keys) {
         fileData[key] = results.data.map((row) => {return row[key]; });
     }
@@ -150,6 +168,33 @@ function parseComplete(results, file) {
         }
     }
 
+    // Categorize the data from fileData into seperate plots
+    // This is based on what kind of quantity it is
+    for (const key of keys) {
+        for (const sensor of SensorTypes) {
+
+            let foundSensor = false;
+
+            for (const measurement of sensor.measurements) {
+                if (key === measurement.key) {
+                    // We've found a sensor that measures this key
+                    let quantityId = measurement.quantityId;
+
+                    // Get the plot corresponding to this quantity and add a line to it
+                    let plot = plots.getPlot(quantityId);
+                    plot.addLine(key, sensor.id, x, fileData[key]);
+
+                    foundSensor = true;
+                    break;
+                }
+            }
+
+            if (foundSensor) {
+                break;
+            }
+        }
+    }
+
     // Dictates whether markers will be drawn or not
     // Runs MUCH faster if disabled
     let drawMode = "lines";
@@ -158,46 +203,44 @@ function parseComplete(results, file) {
         drawMode += "+markers"
     }
 
-    // Create the plot data that we'll pass into the plotly plot
-    let plotData = [];
-    let colouri = 0;
-    for (const key of keys) {
-        plotData.push({
-            line: {
-                shape: 'spline',
-                color: defaultColours[colouri]
-            },
-            x: x,
-            y: fileData[key],
-            type: 'scatter',
-            name: key,
-            mode: drawMode,
-        });
-        colouri = (colouri + 1) % defaultColours.length;
-    }
+    // if (document.getElementById("singlePlotInput").checked) {
+    //     generateNewPlotDiv('combinedPlot');
+    //     let layoutAndConfig = generateLayoutAndConfig(file.name);
+    //     Plotly.newPlot('combinedPlot', plotData, layoutAndConfig.layout, layoutAndConfig.config);
+    // }
 
-    // Clear all existing plots
-    document.getElementById('plots').innerHTML = '';
-
-
-    if (document.getElementById("singlePlotInput").checked) {
-        generateNewPlotDiv('combinedPlot');
-
-        let layoutAndConfig = generateLayoutAndConfig(file.name);
-        Plotly.newPlot('combinedPlot', plotData, layoutAndConfig.layout, layoutAndConfig.config);
-    }
 
     // For each of the plots, we need to generate a DIV element and make a new Plotly plot
-    for (const singlePlotData of plotData) {
-        let id = `${singlePlotData.name}Plot`;
+    for (const plot of plots.plots) {
+        let id = `${plot.quantityId}-plot`;
         generateNewPlotDiv(id);
     }
 
-    for (const singlePlotData of plotData) {
-        let id = `${singlePlotData.name}Plot`;
+    let colouri = 0;
 
-        let layoutAndConfig = generateLayoutAndConfig(`${file.name} - ${singlePlotData.name}`)
-        Plotly.newPlot(id, [singlePlotData], layoutAndConfig.layout, layoutAndConfig.config);
+    for (const plot of plots.plots) {
+        let id = `${plot.quantityId}-plot`;
+
+        let data = [];
+        for (const line of plot.lines) {
+            data.push({
+                name: getSensor(line.sensorId).name,
+                x: line.x,
+                y: line.y,
+                type: 'scatter',
+                mode: drawMode,
+                line: {
+                    shape: 'spline',
+                    color: defaultColours[colouri]
+                },
+            });
+            colouri = (colouri + 1) % defaultColours.length;
+        }
+
+        let quantity = getQuantity(plot.quantityId);
+
+        let [layout, config] = generateLayoutAndConfig(`${quantity.name}`);
+        Plotly.newPlot(id, data, layout, config);
     }
 }
 
@@ -232,16 +275,13 @@ function generateLayoutAndConfig(plotTitle) {
         }
     };
     let config = {
-        editable: true,
+        // editable: true,
         displayModeBar: true,
         displaylogo: false,
         responsive: true
     };
 
-    return {
-        "layout": layout,
-        "config": config
-    };
+    return [layout, config];
 }
 
 
