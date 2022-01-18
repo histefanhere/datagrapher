@@ -12,7 +12,23 @@ const defaultColours = [
 ];
 
 // These are fields we KNOW do not contain data we want to show
-const ignoreKeys = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
+const keysToIgnore = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
+
+
+// Stores information about each of the plots shown
+let plots = {
+    plots: [],
+
+    getPlot: function(quantityId) {
+        for (const plot of this.plots) {
+            if (quantityId === plot.quantityId) {
+                return plot;
+            }
+        }
+
+        // no plot exists for that quantity, lets make one!
+    }
+};
 
 
 /*
@@ -89,30 +105,14 @@ Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
 function parseComplete(results, file) {
-    let keys = results.meta.fields;
-    // filter out the fields in ignoreFields
-    let relevantKeys = keys.filter((field) => { return !ignoreKeys.includes(field); });
-    let keyData = {};
 
-    let data = results.data;
-
-    function mapUNIXToString(unix_timestamp) {
-        let date = new Date(unix_timestamp * 1000);
-       
-        // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
-        let hours = "0" + date.getUTCHours();
-        let minutes = "0" + date.getUTCMinutes();
-        let seconds = "0" + date.getUTCSeconds();
-        let days = "0" + date.getUTCDate();
-        let month = "0" + (date.getUTCMonth() + 1);
-        let year = date.getUTCFullYear();
-        return year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
-    }
-
-    function mapRowToUNIXString(row) {
+    // `x` becomes the x-axis of our plots, Strings representing the datetime of the datapoint that Plotly knows how to parse
+    let x = [];
+    for (const row of results.data) {
         let unix_timestamp = row['UNIX'] || row['Epoch_UTC'];
         if (!(row['Date/Time'] == null)) {
-            return row['Date/Time'];
+            x.push(row['Date/Time']);
+            continue;
         }
 
         if (file.name.includes(".edf")) {
@@ -120,23 +120,33 @@ function parseComplete(results, file) {
             unix_timestamp = unix_timestamp + 60 * 60 * 12
         }
 
-        return mapUNIXToString(unix_timestamp);
+        // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
+        let date = new Date(unix_timestamp * 1000);
+        let hours = "0" + date.getUTCHours();
+        let minutes = "0" + date.getUTCMinutes();
+        let seconds = "0" + date.getUTCSeconds();
+        let days = "0" + date.getUTCDate();
+        let month = "0" + (date.getUTCMonth() + 1);
+        let year = date.getUTCFullYear();
+        x.push(year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2));
     }
 
-    // `x` becomes the x-axis of our plots, Strings representing the datetime of the datapoint that Plotly knows how to parse
-    let x = data.map(mapRowToUNIXString);
+    // `keys` is a list of keys we care about
+    // `fileData` is a dictionary of the keys, and the values a list of values for that key
+    let keys = results.meta.fields.filter((field) => { return !keysToIgnore.includes(field); });
+    let fileData = {};
 
     // Take the data out of relevantFiels and into fieldData
-    for (const key of relevantKeys) {
-        keyData[key] = data.map((row) => {return row[key]; });
+    for (const key of keys) {
+        fileData[key] = results.data.map((row) => {return row[key]; });
     }
 
     // Smooth the data if necessary
     let smooth = document.getElementById("smoothedInput").checked;
     if (smooth) {
         let smoothFactor = parseInt(document.getElementById("smoothedSliderInput").value);
-        for (const key of relevantKeys) {
-            keyData[key] = smoothArray(keyData[key], smoothFactor);
+        for (const key of keys) {
+            fileData[key] = smoothArray(fileData[key], smoothFactor);
         }
     }
 
@@ -151,14 +161,14 @@ function parseComplete(results, file) {
     // Create the plot data that we'll pass into the plotly plot
     let plotData = [];
     let colouri = 0;
-    for (const key of relevantKeys) {
+    for (const key of keys) {
         plotData.push({
             line: {
                 shape: 'spline',
                 color: defaultColours[colouri]
             },
             x: x,
-            y: keyData[key],
+            y: fileData[key],
             type: 'scatter',
             name: key,
             mode: drawMode,
@@ -260,15 +270,16 @@ function smoothArray(origArr, n) {
     return arr;
 }
 
-
-// This handles the smoothed Input slider toggled visibility via it's checkbox
-var smoothedInput = document.getElementById("smoothedInput");
-var smoothedSliderDiv = document.getElementById("smoothedSliderDiv");
-smoothedInput.addEventListener('change', () => {
-    if (smoothedInput.checked) {
-        smoothedSliderDiv.classList.remove('hidden');
-    }
-    else {
-        smoothedSliderDiv.classList.add('hidden');
-    }
+window.addEventListener('load', (_event) => {
+    // This handles the smoothed Input slider toggled visibility via it's checkbox
+    var smoothedInput = document.getElementById("smoothedInput");
+    var smoothedSliderDiv = document.getElementById("smoothedSliderDiv");
+    smoothedInput.addEventListener('change', () => {
+        if (smoothedInput.checked) {
+            smoothedSliderDiv.classList.remove('hidden');
+        }
+        else {
+            smoothedSliderDiv.classList.add('hidden');
+        }
+    });
 });
