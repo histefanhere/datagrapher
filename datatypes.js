@@ -38,6 +38,11 @@ const QuantityTypes = [
         id: 'ethanol',
         name: 'Ethanol',
         unit: ''
+    },
+    {
+        id: 'weight',
+        name: 'Weight',
+        unit: 'kg'
     }
 ];
 
@@ -52,6 +57,11 @@ function getQuantity(quantityId) {
 
 
 const SensorTypes = [
+    {
+        id: 'unknown',
+        name: 'Unknown Sensor',
+        measurements: []
+    },
     {
         id: 'bmp680',
         name: 'BMP680',
@@ -107,6 +117,16 @@ const SensorTypes = [
             {
                 quantityId: 'humidity',
                 key: 'Humid'
+            }
+        ]
+    },
+    {
+        id: 'hx711',
+        name: 'HX711',
+        measurements: [
+            {
+                quantityId: 'weight',
+                key: 'Weight'
             }
         ]
     }

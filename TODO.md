@@ -5,14 +5,15 @@
   - Makes everything zoom in together
   - OR multiple "synced" plots like in [this S.O. answer](https://stackoverflow.com/a/48192606/7718130)
 - Optimize taking out data from relevantKeys into keyData
-- Multiple file support
-  - Datetime manipulation!?!?
-  - Parse them like in [this S.O thread](https://stackoverflow.com/questions/29410435) but probably better from [this medium article using promises](https://medium.com/@kishanvikani/parse-multiple-files-using-papa-parse-and-perform-some-synchronous-task-2db18e531ede)
 - Switch to [Chart.js](https://github.com/chartjs/Chart.js)!?!?!?
-- We can have a list of keys we recognize and pretty print them with a "dictionary"
-- Make a "hashing function" that transforms a key into a colour
-  - conert key to binary, to base 10, sum digits, % colours.length?
 - Add back the combined plot feature / probably change it in some way, it's literally completely useless in it's current form
+  - Datetime manipulation!?!?
+- Do I even need to clear the input element? https://stackoverflow.com/questions/1703228/how-can-i-clear-an-html-file-input-with-javascript/16222877
 
 # Completed
 
+- Make a "hashing function" that transforms a key into a colour
+  - conert key to binary, to base 10, sum digits, % colours.length?
+- We can have a list of keys we recognize and pretty print them with a "dictionary"
+- Multiple file support
+  - Parse them like in [this S.O thread](https://stackoverflow.com/questions/29410435) but probably better from [this medium article using promises](https://medium.com/@kishanvikani/parse-multiple-files-using-papa-parse-and-perform-some-synchronous-task-2db18e531ede)

@@ -11,6 +11,10 @@ const defaultColours = [
     '#17becf'   // blue-teal
 ];
 
+function mapStringToColour(str) {
+    return defaultColours[[...str].map((char) => { return char.charCodeAt(0) }).reduce((partsum, a) => partsum + a, 1) % defaultColours.length];
+}
+
 // These are fields we KNOW do not contain data we want to show
 const keysToIgnore = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
 
@@ -45,34 +49,57 @@ let plots = {
 };
 
 
-/*
-Called when the user clicks the "Show" button and wishes to plot the given datafile
-*/
-function submitFile() {
-    var csv = document.getElementById("csv");
-
-    // We can access the FileList object and want the one (and only) file in it
-    var file = csv.files[0];
-
-    Papa.parse(file, {
-
-        // File has a header line
-        header: true,
-
-        // Convert to propper types instead of leaving as strings
-        dynamicTyping: true,
-
-        // If our file might need some post-processing, it will be done here
-        beforeFirstChunk: processChunk,
-
-        // For some reason it was reading a blank data field as the last value, so this fixes that
-        skipEmptyLines: true,
-        
-        comments: "#",
-        complete: parseComplete,
-        error: parseError
+window.addEventListener('load', (_event) => {
+    // This handles the smoothed Input slider toggled visibility via it's checkbox
+    let smoothedInput = document.getElementById("smoothedInput");
+    let smoothedSliderDiv = document.getElementById("smoothedSliderDiv");
+    smoothedInput.addEventListener('change', () => {
+        if (smoothedInput.checked) {
+            smoothedSliderDiv.classList.remove('hidden');
+        }
+        else {
+            smoothedSliderDiv.classList.add('hidden');
+        }
     });
-}
+
+    let fileInput = document.getElementById('csv'); 
+    fileInput.addEventListener('change', () => {
+        // User has changed the file input, lets parse all the files and then clear the file input
+
+        let files = fileInput.files;
+        Promise.all([...files].map((file) =>
+            new Promise((resolve, reject) =>
+                Papa.parse(file, {
+
+                    // File has a header line
+                    header: true,
+            
+                    // Convert to propper types instead of leaving as strings
+                    dynamicTyping: true,
+            
+                    // If our file might need some post-processing, it will be done here
+                    beforeFirstChunk: processChunk,
+            
+                    // For some reason it was reading a blank data field as the last value, so this fixes that
+                    skipEmptyLines: true,
+                    
+                    comments: "#",
+                    complete: (result, file) => {
+                        resolve({
+                            result: result,
+                            file: file
+                        })
+                    },
+                    error: reject
+                })
+            )
+        ))
+        .then((data) => {
+            parseFiles(data)
+        })
+        .catch((err) => console.log('Something went wrong:', err));
+    });
+});
 
 
 /*
@@ -118,79 +145,106 @@ function processChunk(chunk) {
 Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
-function parseComplete(results, file) {
+function parseFiles(rawData) {
 
     // Clear all existing plots
     document.getElementById('plots').innerHTML = '';
     plots.plots = [];
 
-    // `x` becomes the x-axis of our plots, Strings representing the datetime of the datapoint that Plotly knows how to parse
-    let x = [];
-    for (const row of results.data) {
-        let unix_timestamp = row['UNIX'] || row['Epoch_UTC'];
-        if (!(row['Date/Time'] == null)) {
-            x.push(row['Date/Time']);
-            continue;
+    for (const rawFileData of rawData) {
+
+        let result = rawFileData.result;
+        let file = rawFileData.file;
+
+        // `x` becomes the x-axis of our plots, Strings representing the datetime of the datapoint that Plotly knows how to parse
+        let x = [];
+        for (const row of result.data) {
+            let unix_timestamp = row['UNIX'] || row['Epoch_UTC'];
+            if (!(row['Date/Time'] == null)) {
+                x.push(row['Date/Time']);
+                continue;
+            }
+
+            if (file.name.includes(".edf")) {
+                // FIX FOR EDF files - we need to add +12 Hours to convert to propper timezone!
+                unix_timestamp = unix_timestamp + 60 * 60 * 12
+            }
+
+            // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
+            let date = new Date(unix_timestamp * 1000);
+            let hours = "0" + date.getUTCHours();
+            let minutes = "0" + date.getUTCMinutes();
+            let seconds = "0" + date.getUTCSeconds();
+            let days = "0" + date.getUTCDate();
+            let month = "0" + (date.getUTCMonth() + 1);
+            let year = date.getUTCFullYear();
+            x.push(year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2));
         }
 
-        if (file.name.includes(".edf")) {
-            // FIX FOR EDF files - we need to add +12 Hours to convert to propper timezone!
-            unix_timestamp = unix_timestamp + 60 * 60 * 12
-        }
+        // `keys` is a list of keys we care about
+        // `fileData` is a dictionary of the keys, and the values a list of values for that key
+        let keys = result.meta.fields.filter((field) => { return !keysToIgnore.includes(field); });
+        let fileData = {};
 
-        // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
-        let date = new Date(unix_timestamp * 1000);
-        let hours = "0" + date.getUTCHours();
-        let minutes = "0" + date.getUTCMinutes();
-        let seconds = "0" + date.getUTCSeconds();
-        let days = "0" + date.getUTCDate();
-        let month = "0" + (date.getUTCMonth() + 1);
-        let year = date.getUTCFullYear();
-        x.push(year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2));
-    }
-
-    // `keys` is a list of keys we care about
-    // `fileData` is a dictionary of the keys, and the values a list of values for that key
-    let keys = results.meta.fields.filter((field) => { return !keysToIgnore.includes(field); });
-    let fileData = {};
-
-    // For each of the interesting keys, take out all the data for that key from the table and into a single array in fileData
-    for (const key of keys) {
-        fileData[key] = results.data.map((row) => {return row[key]; });
-    }
-
-    // Smooth the data if necessary
-    let smooth = document.getElementById("smoothedInput").checked;
-    if (smooth) {
-        let smoothFactor = parseInt(document.getElementById("smoothedSliderInput").value);
+        // For each of the interesting keys, take out all the data for that key from the table and into a single array in fileData
         for (const key of keys) {
-            fileData[key] = smoothArray(fileData[key], smoothFactor);
+            fileData[key] = result.data.map((row) => {return row[key]; });
         }
-    }
 
-    // Categorize the data from fileData into seperate plots
-    // This is based on what kind of quantity it is
-    for (const key of keys) {
-        for (const sensor of SensorTypes) {
+        // Smooth the data if necessary
+        let smooth = document.getElementById("smoothedInput").checked;
+        if (smooth) {
+            let smoothFactor = parseInt(document.getElementById("smoothedSliderInput").value);
+            for (const key of keys) {
+                fileData[key] = smoothArray(fileData[key], smoothFactor);
+            }
+        }
 
+        // Categorize the data from fileData into seperate plots
+        // This is based on what kind of quantity it is
+        for (const key of keys) {
             let foundSensor = false;
 
-            for (const measurement of sensor.measurements) {
-                if (key === measurement.key) {
-                    // We've found a sensor that measures this key
-                    let quantityId = measurement.quantityId;
+            for (const sensor of SensorTypes) {
+                for (const measurement of sensor.measurements) {
+                    if (key === measurement.key) {
+                        // We've found a sensor that measures this key
+                        let quantityId = measurement.quantityId;
 
-                    // Get the plot corresponding to this quantity and add a line to it
-                    let plot = plots.getPlot(quantityId);
-                    plot.addLine(key, sensor.id, x, fileData[key]);
+                        // Get the plot corresponding to this quantity and add a line to it
+                        let plot = plots.getPlot(quantityId);
+                        plot.addLine(key, sensor.id, x, fileData[key]);
 
-                    foundSensor = true;
+                        foundSensor = true;
+                        break;
+                    }
+                }
+
+                if (foundSensor) {
                     break;
                 }
             }
 
-            if (foundSensor) {
-                break;
+            if (!foundSensor) {
+                // We scanned through all sensors and couldn't identify what sensor this is.
+                // This happens if a sensor isn't in SensorTypes or we're dealing with an EDF file.
+
+                // Lets create a dummy quantity
+                let dummyQuantity = {
+                    id: key,
+                    name: key,
+                    unit: ''
+                }
+                QuantityTypes.push(dummyQuantity);
+
+                // Also add this quantity as a measurement to the unknown sensor sensor
+                getSensor('unknown').measurements.push({
+                    quantityId: key,
+                    key: key
+                })
+
+                let plot = plots.getPlot(key);
+                plot.addLine(key, 'unknown', x, fileData[key]);
             }
         }
     }
@@ -216,8 +270,6 @@ function parseComplete(results, file) {
         generateNewPlotDiv(id);
     }
 
-    let colouri = 0;
-
     for (const plot of plots.plots) {
         let id = `${plot.quantityId}-plot`;
 
@@ -231,10 +283,9 @@ function parseComplete(results, file) {
                 mode: drawMode,
                 line: {
                     shape: 'spline',
-                    color: defaultColours[colouri]
+                    color: mapStringToColour(`${line.sensorId}-${plot.quantityId}-${line.key}`)
                 },
             });
-            colouri = (colouri + 1) % defaultColours.length;
         }
 
         let quantity = getQuantity(plot.quantityId);
@@ -286,14 +337,6 @@ function generateLayoutAndConfig(plotTitle) {
 
 
 /*
-Called if papaparse encounters an error when parsing a file.
-*/
-function parseError(error, _file) {
-    console.log(error);
-}
-
-
-/*
 Function to smooth an array of data points by averaging adjacent datapoints n times.
 */
 function smoothArray(origArr, n) {
@@ -309,17 +352,3 @@ function smoothArray(origArr, n) {
     }
     return arr;
 }
-
-window.addEventListener('load', (_event) => {
-    // This handles the smoothed Input slider toggled visibility via it's checkbox
-    var smoothedInput = document.getElementById("smoothedInput");
-    var smoothedSliderDiv = document.getElementById("smoothedSliderDiv");
-    smoothedInput.addEventListener('change', () => {
-        if (smoothedInput.checked) {
-            smoothedSliderDiv.classList.remove('hidden');
-        }
-        else {
-            smoothedSliderDiv.classList.add('hidden');
-        }
-    });
-});

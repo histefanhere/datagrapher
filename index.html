@@ -15,10 +15,11 @@
         <script src="libraries/plotly.min.js"></script>
     </head>
     <body>
+        <div id="control-panel">
+            <input type="file" id="csv" name="csv" accept=".csv, .edf" style="display: none;" multiple />
+            <input type="button" value="Add files" onclick="document.getElementById('csv').click();" />
+        </div>
         <form id="csvform">
-            <label for="csv">Choose a file:</label>
-            <input type="file" id="csv" name="csv" multiple=false>
-
             <!-- <div>
                 <input type="checkbox" id="singlePlotInput" name="singlePlotInput" autocomplete="off">
                 <label for="singlePlotInput">Single Combined Plot</label>
@@ -37,7 +38,7 @@
                 <input type="range" id="smoothedSliderInput" name="smoothedSliderInput" min="0" max="60" step="1" value="10" autocomplete="off">
             </div>
 
-            <input type="button" onclick="submitFile()" value="Show">
+            <!-- <input type="button" onclick="submitFile()" value="Show"> -->
         </form>
 
         <!-- The plot divs will dynamically generate in this div -->
