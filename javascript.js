@@ -34,8 +34,9 @@ let plots = {
         let plot = {
             quantityId: quantityId,
             lines: [],
-            addLine: function (key, sensorId, x, y) {
+            addLine: function (filename, key, sensorId, x, y) {
                 this.lines.push({
+                    filename: filename,
                     key: key,
                     sensorId: sensorId,
                     x: x,
@@ -147,9 +148,17 @@ We want to do some more post-processing on the data before finally displaying it
 */
 function parseFiles(rawData) {
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Will probably be moved once multifiles has been fully implemented
     // Clear all existing plots
     document.getElementById('plots').innerHTML = '';
     plots.plots = [];
+
+    let settings = {
+        doOverlayedLines: document.getElementById('overlayedLinesInput').checked,
+        doSmoothing: document.getElementById("smoothedInput").checked,
+        doMarkers: document.getElementById("markersInput").checked
+    };
 
     for (const rawFileData of rawData) {
 
@@ -172,13 +181,20 @@ function parseFiles(rawData) {
 
             // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
             let date = new Date(unix_timestamp * 1000);
-            let hours = "0" + date.getUTCHours();
-            let minutes = "0" + date.getUTCMinutes();
-            let seconds = "0" + date.getUTCSeconds();
-            let days = "0" + date.getUTCDate();
-            let month = "0" + (date.getUTCMonth() + 1);
+            let hours = ("0" + date.getUTCHours()).slice(-2);
+            let minutes = ("0" + date.getUTCMinutes()).slice(-2);
+            let seconds = ("0" + date.getUTCSeconds()).slice(-2);
+            let days = ("0" + date.getUTCDate()).slice(-2);
+            let month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
             let year = date.getUTCFullYear();
-            x.push(year + "-" + month.substr(-2) + "-" + days.substr(-2) + " " + hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2));
+            
+            if (settings.doOverlayedLines) {
+                // let statement = /\d+-\d+-\d+ (\d+):(\d+):\d+/g;
+                x.push(`${hours}${minutes}`);
+            }
+            else {
+                x.push(`${year}-${month}-${days} ${hours}:${minutes}:${seconds}`);
+            }
         }
 
         // `keys` is a list of keys we care about
@@ -192,8 +208,7 @@ function parseFiles(rawData) {
         }
 
         // Smooth the data if necessary
-        let smooth = document.getElementById("smoothedInput").checked;
-        if (smooth) {
+        if (settings.doSmoothing) {
             let smoothFactor = parseInt(document.getElementById("smoothedSliderInput").value);
             for (const key of keys) {
                 fileData[key] = smoothArray(fileData[key], smoothFactor);
@@ -213,7 +228,7 @@ function parseFiles(rawData) {
 
                         // Get the plot corresponding to this quantity and add a line to it
                         let plot = plots.getPlot(quantityId);
-                        plot.addLine(key, sensor.id, x, fileData[key]);
+                        plot.addLine(file.name, key, sensor.id, x, fileData[key]);
 
                         foundSensor = true;
                         break;
@@ -249,20 +264,14 @@ function parseFiles(rawData) {
         }
     }
 
+    console.log(plots.plots);
+
     // Dictates whether markers will be drawn or not
     // Runs MUCH faster if disabled
     let drawMode = "lines";
-    let markers = document.getElementById("markersInput").checked;
-    if (markers) {
+    if (settings.doMarkers) {
         drawMode += "+markers"
     }
-
-    // if (document.getElementById("singlePlotInput").checked) {
-    //     generateNewPlotDiv('combinedPlot');
-    //     let layoutAndConfig = generateLayoutAndConfig(file.name);
-    //     Plotly.newPlot('combinedPlot', plotData, layoutAndConfig.layout, layoutAndConfig.config);
-    // }
-
 
     // For each of the plots, we need to generate a DIV element and make a new Plotly plot
     for (const plot of plots.plots) {
@@ -275,6 +284,14 @@ function parseFiles(rawData) {
 
         let data = [];
         for (const line of plot.lines) {
+            let colourString = '';
+            if (settings.doOverlayedLines) {
+                colourString = `${line.filename}-${line.key}`;
+            }
+            else {
+                colourString = `${line.key}`;
+            }
+
             data.push({
                 name: getSensor(line.sensorId).name,
                 x: line.x,
@@ -282,8 +299,9 @@ function parseFiles(rawData) {
                 type: 'scatter',
                 mode: drawMode,
                 line: {
-                    shape: 'spline',
-                    color: mapStringToColour(`${line.sensorId}-${plot.quantityId}-${line.key}`)
+                    // shape: 'spline',
+                    shape: 'linear',
+                    color: mapStringToColour(colourString)
                 },
             });
         }

@@ -15,15 +15,25 @@
         <script src="libraries/plotly.min.js"></script>
     </head>
     <body>
-        <div id="control-panel">
-            <input type="file" id="csv" name="csv" accept=".csv, .edf" style="display: none;" multiple />
-            <input type="button" value="Add files" onclick="document.getElementById('csv').click();" />
+        <div id="upper-control">
+            <div id="control-panel">
+                <input type="file" id="csv" name="csv" accept=".csv, .edf" style="display: none;" multiple />
+                <input type="button" id="add-files-button" value="Add files" onclick="document.getElementById('csv').click();" />
+                <!-- <button id="add-files-button" value="Add files" onclick="document.getElementById('csv').click();">Add files</button> -->
+
+                <div id="file-list">
+                    <div><div class="file-name">14-20-2020.csv</div><button type='button' class="file-remove-button">&#10006</button></div>
+                    <div>14-20-2020.csv</div>
+                    <div>14-20-2020.csv</div>
+                </div>
+            </div>
         </div>
+
         <form id="csvform">
-            <!-- <div>
-                <input type="checkbox" id="singlePlotInput" name="singlePlotInput" autocomplete="off">
-                <label for="singlePlotInput">Single Combined Plot</label>
-            </div> -->
+            <div>
+                <input type="checkbox" id="overlayedLinesInput" name="overlayedLinesInput" autocomplete="off">
+                <label for="overlayedLinesInput">Combine Lines</label>
+            </div>
 
             <div>
                 <input type="checkbox" id="markersInput" name="markersInput" autocomplete="off">

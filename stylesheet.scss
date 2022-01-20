@@ -1,8 +1,81 @@
+/* open-sans-regular - latin */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 400;
+    src: url('./fonts/open-sans-v27-latin-regular.eot'); /* IE9 Compat Modes */
+    src: local(''),
+         url('./fonts/open-sans-v27-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('./fonts/open-sans-v27-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+         url('./fonts/open-sans-v27-latin-regular.woff') format('woff'), /* Modern Browsers */
+         url('./fonts/open-sans-v27-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('./fonts/open-sans-v27-latin-regular.svg#OpenSans') format('svg'); /* Legacy iOS */
+}
+
 * {
-    font-family: Verdana, Geneva, sans-serif;
+    // font-family: Verdana, Geneva, sans-serif;
+    font-family: 'Open Sans';
+}
+
+body {
+    margin: 0;
+    text-align: center;
 }
 
 $form-colour: #eee;
+
+#upper-control {
+    margin-top: 50px;
+    text-align: center;
+
+    #control-panel {
+        margin: 0 auto;
+        display: inline-block;
+
+        #add-files-button {
+            font-size: 1.7em;
+            padding: 20px 30px;
+
+            // text-decoration: none;
+            border: 0px;
+
+            // background-color: #256EFF;
+            // background-image: linear-gradient(30deg, #165be6, #3e7fff);
+            background-image: linear-gradient(30deg, #1152d3, #6a9bff);
+            color: #fff6f6;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+        }
+
+        #file-list {
+            margin-top: 10px;
+
+            div {
+                .file-name {
+                    display: inline-block;
+                }
+
+                .file-remove-button {
+                    // display: inline-block;
+                    float: right;
+                    height: 24px;
+                    width: 24px;
+
+                    // background-color: rgba(0, 0, 0, 0);
+                    // border: 1px solid black;
+                    // border-radius: 3px;/
+                    // cursor: pointer;
+                    // &:hover {
+                        // color: #707070;
+                    // }
+
+                }
+            }
+        }
+    }
+}
 
 form {
     display: inline-block;
