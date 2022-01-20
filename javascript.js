@@ -49,6 +49,8 @@ let plots = {
     }
 };
 
+let papaParseData = [];
+
 
 window.addEventListener('load', (_event) => {
     // This handles the smoothed Input slider toggled visibility via it's checkbox
@@ -143,14 +145,34 @@ function processChunk(chunk) {
 
 
 /*
+Called when the user clicks the "clear all files" button
+*/
+function clearFiles() {
+    if (confirm("Are you sure you want to clear all files?")) {
+        document.getElementById('plots').innerHTML = '';
+        plots.plots = [];
+        papaParseData = [];
+    }
+}
+
+
+/*
+Called when the user clicks the "save" button
+*/
+function saveSettings() {
+    parseFiles([]);
+}
+
+
+/*
 Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
 function parseFiles(rawData) {
+    for (rawFileData of rawData) {
+        papaParseData.push(rawFileData);
+    }
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Will probably be moved once multifiles has been fully implemented
-    // Clear all existing plots
     document.getElementById('plots').innerHTML = '';
     plots.plots = [];
 
@@ -160,7 +182,7 @@ function parseFiles(rawData) {
         doMarkers: document.getElementById("markersInput").checked
     };
 
-    for (const rawFileData of rawData) {
+    for (const rawFileData of papaParseData) {
 
         let result = rawFileData.result;
         let file = rawFileData.file;
@@ -182,7 +204,13 @@ function parseFiles(rawData) {
             // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
             let date = new Date(unix_timestamp * 1000);
             let hours = ("0" + date.getUTCHours()).slice(-2);
-            let minutes = ("0" + date.getUTCMinutes()).slice(-2);
+            let minutes = 0;
+            if (settings.doOverlayedLines) {
+                minutes = ("0" + Math.round(date.getUTCMinutes() / 6 * 10)).slice(-2);
+            }
+            else {
+                minutes = ("0" + date.getUTCMinutes()).slice(-2);
+            }
             let seconds = ("0" + date.getUTCSeconds()).slice(-2);
             let days = ("0" + date.getUTCDate()).slice(-2);
             let month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
@@ -264,8 +292,6 @@ function parseFiles(rawData) {
         }
     }
 
-    console.log(plots.plots);
-
     // Dictates whether markers will be drawn or not
     // Runs MUCH faster if disabled
     let drawMode = "lines";
@@ -293,14 +319,15 @@ function parseFiles(rawData) {
             }
 
             data.push({
-                name: getSensor(line.sensorId).name,
+                name: `${getSensor(line.sensorId).name} (${line.filename})`,
                 x: line.x,
                 y: line.y,
                 type: 'scatter',
                 mode: drawMode,
                 line: {
-                    // shape: 'spline',
-                    shape: 'linear',
+                    shape: 'spline',
+                    smoothing: 0.6, // 0-1.3, default=1
+                    // shape: 'linear',
                     color: mapStringToColour(colourString)
                 },
             });
