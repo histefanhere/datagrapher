@@ -179,7 +179,8 @@ function parseFiles(rawData) {
     let settings = {
         doOverlayedLines: document.getElementById('overlayedLinesInput').checked,
         doSmoothing: document.getElementById("smoothedInput").checked,
-        doMarkers: document.getElementById("markersInput").checked
+        doMarkers: document.getElementById("markersInput").checked,
+        doEditable: document.getElementById("editableInput").checked
     };
 
     for (const rawFileData of papaParseData) {
@@ -335,7 +336,28 @@ function parseFiles(rawData) {
 
         let quantity = getQuantity(plot.quantityId);
 
-        let [layout, config] = generateLayoutAndConfig(`${quantity.name}`);
+        let layout = {
+            title: {
+                text: `${quantity.name}`
+            },
+            showlegend: true,
+            legend: {
+                font: {size: 16}
+            },
+            xaxis: {
+                title: 'Time'
+            },
+            yaxis: {
+                title: 'Value'
+            }
+        };
+        let config = {
+            editable: settings.doEditable,
+            displayModeBar: true,
+            displaylogo: false,
+            responsive: true
+        };
+
         Plotly.newPlot(id, data, layout, config);
     }
 }
@@ -348,36 +370,6 @@ function generateNewPlotDiv(id) {
     let template = `<div id="${id}" class="plot"></div>\n`;
 
     document.getElementById("plots").innerHTML += template;
-}
-
-
-/*
-Generates the layout and config objects for the Plotly plots.
-*/
-function generateLayoutAndConfig(plotTitle) {
-    let layout = {
-        title: {
-            text: plotTitle
-        },
-        showlegend: true,
-        legend: {
-            font: {size: 16}
-        },
-        xaxis: {
-            title: 'Time'
-        },
-        yaxis: {
-            title: 'Value'
-        }
-    };
-    let config = {
-        // editable: true,
-        displayModeBar: true,
-        displaylogo: false,
-        responsive: true
-    };
-
-    return [layout, config];
 }
 
 
