@@ -1,5 +1,8 @@
 # TODO
 
+- need a quick script for downloading latest js files, BOTH datatypes.js and javascript.js
+- if combined lines is ticked, there can be a bunch of values at the same X - these need to be averaged
+
 - Use subplots
   - Makes everything zoom in together
   - OR multiple "synced" plots like in [this S.O. answer](https://stackoverflow.com/a/48192606/7718130)
@@ -15,6 +18,9 @@
 
 # Completed
 
+- in deda_pcela_8, the last column for the BME680 headers is missspelt
+- we need compatibility for the old BME680 headers
+- sensor for DS18B20 temps (Temp1, Temp2, ...)
 - getSensor() is undefined if it doesn't recognize the sensor, e.g. if it's an edf file
 - if the key doesn't exist, it won't graph the data
 - option to remove spline behaviour
