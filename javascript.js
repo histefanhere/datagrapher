@@ -288,7 +288,7 @@ function parseFiles(rawData) {
                 })
 
                 let plot = plots.getPlot(key);
-                plot.addLine(key, 'unknown', x, fileData[key]);
+                plot.addLine(file.name, key, 'unknown', x, fileData[key]);
             }
         }
     }

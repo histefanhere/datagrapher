@@ -15,6 +15,8 @@
 
 # Completed
 
+- getSensor() is undefined if it doesn't recognize the sensor, e.g. if it's an edf file
+- if the key doesn't exist, it won't graph the data
 - option to remove spline behaviour
   - maybe make it the 0 level of smooth input?
   - nah, it looks really bad without spline. maybe dial it down though
