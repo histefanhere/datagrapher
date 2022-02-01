@@ -1,6 +1,5 @@
 # TODO
 
-- need a quick script for downloading latest js files, BOTH datatypes.js and javascript.js
 - if combined lines is ticked, there can be a bunch of values at the same X - these need to be averaged
 
 - Use subplots
@@ -18,6 +17,7 @@
 
 # Completed
 
+- need a quick script for downloading latest js files, BOTH datatypes.js and javascript.js - nah just datatypes g
 - in deda_pcela_8, the last column for the BME680 headers is missspelt
 - we need compatibility for the old BME680 headers
 - sensor for DS18B20 temps (Temp1, Temp2, ...)
