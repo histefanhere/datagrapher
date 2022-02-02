@@ -18,6 +18,12 @@ function mapStringToColour(str) {
 // These are fields we KNOW do not contain data we want to show
 const keysToIgnore = ["UNIX", "Hour", "Minute", "Epoch_UTC", "Local_Date_Time", "Date/Time", "Unit"];
 
+// Stores all the raw file data direct from PapaParse in case the settings change at some point
+// and it needs re-parsing.
+let papaParseData = [];
+
+// Stores the current settings
+let settings = getSettings();
 
 // Stores information about each of the plots shown
 let plots = {
@@ -48,8 +54,6 @@ let plots = {
         return plot;
     }
 };
-
-let papaParseData = [];
 
 
 window.addEventListener('load', (_event) => {
@@ -157,6 +161,19 @@ function clearFiles() {
 
 
 /*
+Gets the current settings configuration
+*/
+function getSettings() {
+    return {
+        doOverlayedLines: document.getElementById('overlayedLinesInput').checked,
+        doSmoothing: document.getElementById("smoothedInput").checked,
+        doMarkers: document.getElementById("markersInput").checked,
+        doEditable: document.getElementById("editableInput").checked
+    }
+}
+
+
+/*
 Called when the user clicks the "save" button
 */
 function saveSettings() {
@@ -169,22 +186,106 @@ Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
 function parseFiles(rawData) {
+    
+    // There are specific settings that require re-parsing of all the data
+    let newSettings = getSettings();
+    let reParseAllData = (newSettings.doOverlayedLines != settings.doOverlayedLines) || (newSettings.doSmoothing != settings.doSmoothing)
+    settings = newSettings;
+
     for (rawFileData of rawData) {
         papaParseData.push(rawFileData);
     }
 
+    if (reParseAllData) {
+        // The settings changed, so *all* the data needs to be re-parsed.
+        plots.plots = [];
+        parseFileData(papaParseData);
+    }
+    else {
+        // The settings didn't change, so all we need to parse is the new file.
+        parseFileData(rawData);
+    }
+
+    // Up to this point we've got everything we need in `plots`,
+    // and all that needs to be done is actually to plot them using Plotly.
+
+    // Dictates whether markers will be drawn or not
+    // Runs MUCH faster if disabled
+    let drawMode = "lines";
+    if (settings.doMarkers) {
+        drawMode += "+markers"
+    }
+
+    // For each of the plots, we need to generate a DIV element and make a new Plotly plot
     document.getElementById('plots').innerHTML = '';
-    plots.plots = [];
+    for (const plot of plots.plots) {
+        let id = `${plot.quantityId}-plot`;
+        document.getElementById("plots").innerHTML += `<div id="${id}" class="plot"></div>\n`;
+    }
 
-    let settings = {
-        doOverlayedLines: document.getElementById('overlayedLinesInput').checked,
-        doSmoothing: document.getElementById("smoothedInput").checked,
-        doMarkers: document.getElementById("markersInput").checked,
-        doEditable: document.getElementById("editableInput").checked
-    };
+    for (const plot of plots.plots) {
+        let id = `${plot.quantityId}-plot`;
 
-    for (const rawFileData of papaParseData) {
+        let data = [];
+        for (const line of plot.lines) {
+            let colourString = '';
+            if (settings.doOverlayedLines) {
+                colourString = `${line.filename}-${line.key}`;
+            }
+            else {
+                colourString = `${line.key}`;
+            }
 
+            data.push({
+                name: `${getSensor(line.sensorId).name} (${line.filename})`,
+                x: line.x,
+                y: line.y,
+                type: 'scatter',
+                mode: drawMode,
+                line: {
+                    shape: 'spline',
+                    smoothing: 0.6, // 0-1.3, default=1
+                    // shape: 'linear',
+                    color: mapStringToColour(colourString)
+                },
+            });
+        }
+
+        let quantity = getQuantity(plot.quantityId);
+
+        let layout = {
+            title: {
+                text: `${quantity.name}`
+            },
+            showlegend: true,
+            legend: {
+                font: {size: 16}
+            },
+            xaxis: {
+                title: 'Time'
+            },
+            yaxis: {
+                title: 'Value'
+            }
+        };
+        let config = {
+            editable: settings.doEditable,
+            displayModeBar: true,
+            displaylogo: false,
+            responsive: true
+        };
+
+        Plotly.newPlot(id, data, layout, config);
+    }
+}
+
+/*
+Parses the file data of a single file.
+
+The parsing changes based on the currently applied settings, and once completed the plots are added to `plots`.
+*/
+function parseFileData(rawData) {
+    for (const rawFileData of rawData) {
         let result = rawFileData.result;
         let file = rawFileData.file;
 
@@ -292,84 +393,6 @@ function parseFiles(rawData) {
             }
         }
     }
-
-    // Dictates whether markers will be drawn or not
-    // Runs MUCH faster if disabled
-    let drawMode = "lines";
-    if (settings.doMarkers) {
-        drawMode += "+markers"
-    }
-
-    // For each of the plots, we need to generate a DIV element and make a new Plotly plot
-    for (const plot of plots.plots) {
-        let id = `${plot.quantityId}-plot`;
-        generateNewPlotDiv(id);
-    }
-
-    for (const plot of plots.plots) {
-        let id = `${plot.quantityId}-plot`;
-
-        let data = [];
-        for (const line of plot.lines) {
-            let colourString = '';
-            if (settings.doOverlayedLines) {
-                colourString = `${line.filename}-${line.key}`;
-            }
-            else {
-                colourString = `${line.key}`;
-            }
-
-            data.push({
-                name: `${getSensor(line.sensorId).name} (${line.filename})`,
-                x: line.x,
-                y: line.y,
-                type: 'scatter',
-                mode: drawMode,
-                line: {
-                    shape: 'spline',
-                    smoothing: 0.6, // 0-1.3, default=1
-                    // shape: 'linear',
-                    color: mapStringToColour(colourString)
-                },
-            });
-        }
-
-        let quantity = getQuantity(plot.quantityId);
-
-        let layout = {
-            title: {
-                text: `${quantity.name}`
-            },
-            showlegend: true,
-            legend: {
-                font: {size: 16}
-            },
-            xaxis: {
-                title: 'Time'
-            },
-            yaxis: {
-                title: 'Value'
-            }
-        };
-        let config = {
-            editable: settings.doEditable,
-            displayModeBar: true,
-            displaylogo: false,
-            responsive: true
-        };
-
-        Plotly.newPlot(id, data, layout, config);
-    }
-}
-
-
-/*
-Generates a new div element for a new plot
-*/
-function generateNewPlotDiv(id) {
-    let template = `<div id="${id}" class="plot"></div>\n`;
-
-    document.getElementById("plots").innerHTML += template;
 }
 
 
