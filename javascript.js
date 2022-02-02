@@ -409,7 +409,13 @@ function parseFileData(rawData) {
 
                         // Get the plot corresponding to this quantity and add a line to it
                         let plot = plots.getPlot(quantityId);
-                        plot.addLine(file.name, key, sensor.id, x, fileData[key]);
+
+                        let filename = file.name;
+                        let cutoff = 27;
+                        if (filename.length > cutoff) {
+                            filename = `${filename.slice(0, cutoff - 1)}...`;
+                        }
+                        plot.addLine(filename, key, sensor.id, x, fileData[key]);
 
                         foundSensor = true;
                         break;
@@ -440,7 +446,12 @@ function parseFileData(rawData) {
                 })
 
                 let plot = plots.getPlot(key);
-                plot.addLine(file.name, key, 'unknown', x, fileData[key]);
+                let filename = file.name;
+                let cutoff = 27;
+                if (filename.length > cutoff) {
+                    filename = `${filename.slice(0, cutoff - 1)}...`;
+                }
+                plot.addLine(filename, key, 'unknown', x, fileData[key]);
             }
         }
     }

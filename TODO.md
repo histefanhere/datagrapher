@@ -1,8 +1,5 @@
 # TODO
 
-- if combined lines is ticked, there can be a bunch of values at the same X - these need to be averaged
-- increase resolution of combined lines to include seconds
-
 - Use subplots
   - Makes everything zoom in together
   - OR multiple "synced" plots like in [this S.O. answer](https://stackoverflow.com/a/48192606/7718130)
@@ -18,6 +15,8 @@
 
 # Completed
 
+- increase resolution of combined lines to include seconds
+- if combined lines is ticked, there can be a bunch of values at the same X - these need to be averaged
 - need a quick script for downloading latest js files, BOTH datatypes.js and javascript.js - nah just datatypes g
 - in deda_pcela_8, the last column for the BME680 headers is missspelt
 - we need compatibility for the old BME680 headers
