@@ -313,14 +313,21 @@ function parseFileData(rawData) {
             else {
                 minutes = ("0" + date.getUTCMinutes()).slice(-2);
             }
-            let seconds = ("0" + date.getUTCSeconds()).slice(-2);
+            let seconds = 0;
+            if (settings.doOverlayedLines) {
+                seconds = ("0" + Math.round(date.getUTCSeconds() / 6 * 10)).slice(-2);
+            }
+            else {
+                seconds = ("0" + date.getUTCSeconds()).slice(-2);
+            }
+            // let seconds = ("0" + date.getUTCSeconds()).slice(-2);
             let days = ("0" + date.getUTCDate()).slice(-2);
             let month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
             let year = date.getUTCFullYear();
             
             if (settings.doOverlayedLines) {
                 // let statement = /\d+-\d+-\d+ (\d+):(\d+):\d+/g;
-                x.push(`${hours}${minutes}`);
+                x.push(`${hours}.${minutes}${seconds}`);
             }
             else {
                 x.push(`${year}-${month}-${days} ${hours}:${minutes}:${seconds}`);
@@ -335,6 +342,50 @@ function parseFileData(rawData) {
         // For each of the interesting keys, take out all the data for that key from the table and into a single array in fileData
         for (const key of keys) {
             fileData[key] = result.data.map((row) => {return row[key]; });
+        }
+
+        // Sometimes, especially if we have `settings.doOverlayedLines` on where we lose a lot of data, there can be multiple identical x values.
+        // These need to all be averaged into one.
+        if (settings.doOverlayedLines) {
+            let prevX = '';
+            let n = 1;
+            for (let i = x.length - 1; i >= 0; i--) {
+                let curX = x[i];
+                if (curX === prevX) {
+                    n += 1;
+                }
+
+                if ((curX != prevX) || (i == 0)) {
+                    if (i == 0) {
+                        i -= 1;
+                    }
+
+                    // not the same as previous. if n is not 1, we just passed an identical trail
+                    if (n > 1) {
+                        // the trail goes from x[i+1] to x[i+1+n]
+                        let total = {};
+                        keys.forEach(key => {
+                            total[key] = 0;
+                        })
+
+                        for (let j = 0; j < n; j++) {
+                            for (const key of keys) {
+                                total[key] = total[key] + fileData[key][i + 1 + j];
+                            }
+                        }
+
+                        // Now we need to assign the averaged values to *one* x and delete the rest
+                        x.splice(i + 1, n, prevX);
+                        for (const key of keys) {
+                            // fileData[key][i + 1] = total[key] / n;
+                            // from index i+1, n items, insert the one we want
+                            fileData[key].splice(i + 1, n, total[key] / n);
+                        }
+                        n = 1;
+                    }
+                }
+                prevX = curX;
+            }
         }
 
         // Smooth the data if necessary

@@ -1,6 +1,7 @@
 # TODO
 
 - if combined lines is ticked, there can be a bunch of values at the same X - these need to be averaged
+- increase resolution of combined lines to include seconds
 
 - Use subplots
   - Makes everything zoom in together
