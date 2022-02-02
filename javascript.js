@@ -411,7 +411,7 @@ function parseFileData(rawData) {
                         let plot = plots.getPlot(quantityId);
 
                         let filename = file.name;
-                        let cutoff = 27;
+                        let cutoff = 20;
                         if (filename.length > cutoff) {
                             filename = `${filename.slice(0, cutoff - 1)}...`;
                         }
@@ -447,7 +447,7 @@ function parseFileData(rawData) {
 
                 let plot = plots.getPlot(key);
                 let filename = file.name;
-                let cutoff = 27;
+                let cutoff = 20;
                 if (filename.length > cutoff) {
                     filename = `${filename.slice(0, cutoff - 1)}...`;
                 }
