@@ -43,6 +43,21 @@ const QuantityTypes = [
         id: 'weight',
         name: 'Weight',
         unit: 'kg'
+    },
+    {
+        id: 'altitude',
+        name: 'Altitude',
+        unit: 'm'
+    },
+    {
+        id: 'co2',
+        name: 'CO2',
+        unit: ''
+    },
+    {
+        id: 'vocindex',
+        name: 'VOC Index',
+        unit: ''
     }
 ];
 
@@ -61,6 +76,15 @@ const SensorTypes = [
         id: 'unknown',
         name: 'Unknown Sensor',
         measurements: []
+    },
+    {
+        id: 'bmp280',
+        name: 'BMP280',
+        measurements: [
+            {quantityId: 'temperature',     key: 'BMPT'},
+            {quantityId: 'pressure',        key: 'BMPP'},
+            {quantityId: 'altitude',        key: 'BMPA'},
+        ]
     },
     {
         id: 'bme680',
@@ -93,6 +117,25 @@ const SensorTypes = [
         measurements: [
             {quantityId: 'temperature',     key: 'Temp'},
             {quantityId: 'humidity',        key: 'Humid'},
+            {quantityId: 'temperature',     key: 'SHTT'},
+            {quantityId: 'humidity',        key: 'SHTH'},
+        ]
+    },
+    {
+        id: 'aht10',
+        name: 'AHT10',
+        measurements: [
+            {quantityId: 'temperature',     key: 'AHTT'},
+            {quantityId: 'humidity',        key: 'AHTH'},
+        ]
+    },
+    {
+        id: 'scd41',
+        name: 'SCD41',
+        measurements: [
+            {quantityId: 'co2',             key: 'SCDC'},
+            {quantityId: 'temperature',     key: 'SCDT'},
+            {quantityId: 'humidity',        key: 'SCDH'},
         ]
     },
     {
@@ -100,6 +143,17 @@ const SensorTypes = [
         name: 'HX711',
         measurements: [
             {quantityId: 'weight',          key: 'Weight'},
+        ]
+    },
+    {
+        id: 'mcu681',
+        name: 'MCU681',
+        measurements: [
+            {quantityId: 'temperature',     key: 'MCUT'},
+            {quantityId: 'humidity',        key: 'MCUH'},
+            {quantityId: 'pressure',        key: 'MCUP'},
+            {quantityId: 'altitude',        key: 'MCUA'},
+            {quantityId: 'vocindex',        key: 'MCUV'},
         ]
     },
     {
