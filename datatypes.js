@@ -157,35 +157,79 @@ const SensorTypes = [
         ]
     },
     {
-        id: 'ds18b20',
-        name: 'DS18B20',
-        measurements: [
-            {quantityId: 'temperature',     key: 'Temp1'},
-            {quantityId: 'temperature',     key: 'Temp2'},
-            {quantityId: 'temperature',     key: 'Temp3'},
-            {quantityId: 'temperature',     key: 'Temp4'},
-            {quantityId: 'temperature',     key: 'Temp5'},
-            {quantityId: 'temperature',     key: 'Temp6'},
-            {quantityId: 'temperature',     key: 'Temp7'},
-            {quantityId: 'temperature',     key: 'Temp8'},
-            {quantityId: 'temperature',     key: 'Temp9'},
-            {quantityId: 'temperature',     key: 'Temp10'},
-            {quantityId: 'temperature',     key: 'Temp11'},
-            {quantityId: 'temperature',     key: 'Temp12'},
-            {quantityId: 'temperature',     key: 'Temp13'},
-            {quantityId: 'temperature',     key: 'Temp14'},
-            {quantityId: 'temperature',     key: 'Temp15'},
-            {quantityId: 'temperature',     key: 'Temp16'},
-            {quantityId: 'temperature',     key: 'Temp17'},
-            {quantityId: 'temperature',     key: 'Temp18'},
-            {quantityId: 'temperature',     key: 'Temp19'},
-            {quantityId: 'temperature',     key: 'Temp20'},
-            {quantityId: 'temperature',     key: 'Temp21'},
-            {quantityId: 'temperature',     key: 'Temp22'},
-            {quantityId: 'temperature',     key: 'Temp23'},
-            {quantityId: 'temperature',     key: 'Temp24'},
-            {quantityId: 'temperature',     key: 'Temp25'},
-        ]
+        id: 'ds18b20', name: 'DS18 1', measurements: [{quantityId: 'temperature',     key: 'Temp1'}]
+    },
+    {
+        id: 'ds18b20_1', name: '18B20_1', measurements: [{quantityId: 'temperature', key: 'Temp1'}]
+    },
+    {
+        id: 'ds18b20_2', name: '18B20_2', measurements: [{quantityId: 'temperature', key: 'Temp2'}]
+    },
+    {
+        id: 'ds18b20_3', name: '18B20_3', measurements: [{quantityId: 'temperature', key: 'Temp3'}]
+    },
+    {
+        id: 'ds18b20_4', name: '18B20_4', measurements: [{quantityId: 'temperature', key: 'Temp4'}]
+    },
+    {
+        id: 'ds18b20_5', name: '18B20_5', measurements: [{quantityId: 'temperature', key: 'Temp5'}]
+    },
+    {
+        id: 'ds18b20_6', name: '18B20_6', measurements: [{quantityId: 'temperature', key: 'Temp6'}]
+    },
+    {
+        id: 'ds18b20_7', name: '18B20_7', measurements: [{quantityId: 'temperature', key: 'Temp7'}]
+    },
+    {
+        id: 'ds18b20_8', name: '18B20_8', measurements: [{quantityId: 'temperature', key: 'Temp8'}]
+    },
+    {
+        id: 'ds18b20_9', name: '18B20_9', measurements: [{quantityId: 'temperature', key: 'Temp9'}]
+    },
+    {
+        id: 'ds18b20_10', name: '18B20_10', measurements: [{quantityId: 'temperature', key: 'Temp10'}]
+    },
+    {
+        id: 'ds18b20_11', name: '18B20_11', measurements: [{quantityId: 'temperature', key: 'Temp11'}]
+    },
+    {
+        id: 'ds18b20_12', name: '18B20_12', measurements: [{quantityId: 'temperature', key: 'Temp12'}]
+    },
+    {
+        id: 'ds18b20_13', name: '18B20_13', measurements: [{quantityId: 'temperature', key: 'Temp13'}]
+    },
+    {
+        id: 'ds18b20_14', name: '18B20_14', measurements: [{quantityId: 'temperature', key: 'Temp14'}]
+    },
+    {
+        id: 'ds18b20_15', name: '18B20_15', measurements: [{quantityId: 'temperature', key: 'Temp15'}]
+    },
+    {
+        id: 'ds18b20_16', name: '18B20_16', measurements: [{quantityId: 'temperature', key: 'Temp16'}]
+    },
+    {
+        id: 'ds18b20_17', name: '18B20_17', measurements: [{quantityId: 'temperature', key: 'Temp17'}]
+    },
+    {
+        id: 'ds18b20_18', name: '18B20_18', measurements: [{quantityId: 'temperature', key: 'Temp18'}]
+    },
+    {
+        id: 'ds18b20_19', name: '18B20_19', measurements: [{quantityId: 'temperature', key: 'Temp19'}]
+    },
+    {
+        id: 'ds18b20_20', name: '18B20_20', measurements: [{quantityId: 'temperature', key: 'Temp20'}]
+    },
+    {
+        id: 'ds18b20_21', name: '18B20_21', measurements: [{quantityId: 'temperature', key: 'Temp21'}]
+    },
+    {
+        id: 'ds18b20_22', name: '18B20_22', measurements: [{quantityId: 'temperature', key: 'Temp22'}]
+    },
+    {
+        id: 'ds18b20_23', name: '18B20_23', measurements: [{quantityId: 'temperature', key: 'Temp23'}]
+    },
+    {
+        id: 'ds18b20_24', name: '18B20_24', measurements: [{quantityId: 'temperature', key: 'Temp24'}]
     }
 ];
 
