@@ -44,6 +44,8 @@ window.addEventListener('load', (_event) => {
     fileInput.addEventListener('change', () => {
         // User has changed the file input, lets parse all the files and then clear the file input
 
+        document.getElementById("loader").style.display = "block";
+
         let files = fileInput.files;
         Promise.all([...files].map((file) =>
             new Promise((resolve, reject) =>
@@ -125,7 +127,6 @@ Called when the user clicks the "clear all files" button
 function clearFiles() {
     if (confirm("Are you sure you want to clear all files?")) {
         document.getElementById('plots').innerHTML = '';
-        // plots.plots = [];
         lines = [];
         papaParseData = [];
     }
@@ -158,6 +159,8 @@ Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
 function parseFiles(rawData) {
+
+    document.getElementById("loader").style.display = "block";
     
     // There are specific settings that require re-parsing of all the data
     let newSettings = getSettings();
@@ -260,6 +263,8 @@ function parseFiles(rawData) {
 
         Plotly.newPlot(id, data, layout, config);
     }
+
+    document.getElementById("loader").style.display = "none";
 }
 
 /*
