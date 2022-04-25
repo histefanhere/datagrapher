@@ -4,6 +4,7 @@
   - Makes everything zoom in together
   - OR multiple "synced" plots like in [this S.O. answer](https://stackoverflow.com/a/48192606/7718130)
 - Do I even need to clear the input element? https://stackoverflow.com/questions/1703228/how-can-i-clear-an-html-file-input-with-javascript/16222877
+- seperate plots for every line option
 
 
 # Ehhh....
@@ -11,6 +12,7 @@
 - Use JQuery to make the smooth input slider visibility nicer
 - Optimize taking out data from relevantKeys into keyData
 - Switch to [Chart.js](https://github.com/chartjs/Chart.js)!?!?!?
+- make a loader (esp for parsing files) using [tutorial](https://www.w3schools.com/howto/howto_css_loader.asp)
 
 
 # Completed

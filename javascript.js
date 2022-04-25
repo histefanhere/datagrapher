@@ -25,36 +25,7 @@ let papaParseData = [];
 // Stores the current settings
 let settings = getSettings();
 
-// Stores information about each of the plots shown
-let plots = {
-    plots: [],
-
-    getPlot: function(quantityId) {
-        for (const plot of this.plots) {
-            if (quantityId === plot.quantityId) {
-                return plot;
-            }
-        }
-
-        // no plot exists for that quantity, lets make one!
-        let plot = {
-            quantityId: quantityId,
-            lines: [],
-            addLine: function (filename, key, sensorId, x, y) {
-                this.lines.push({
-                    filename: filename,
-                    key: key,
-                    sensorId: sensorId,
-                    x: x,
-                    y: y
-                });
-            }
-        };
-        this.plots.push(plot);
-        return plot;
-    }
-};
-
+let lines = [];
 
 window.addEventListener('load', (_event) => {
     // This handles the smoothed Input slider toggled visibility via it's checkbox
@@ -154,7 +125,8 @@ Called when the user clicks the "clear all files" button
 function clearFiles() {
     if (confirm("Are you sure you want to clear all files?")) {
         document.getElementById('plots').innerHTML = '';
-        plots.plots = [];
+        // plots.plots = [];
+        lines = [];
         papaParseData = [];
     }
 }
@@ -198,7 +170,7 @@ function parseFiles(rawData) {
 
     if (reParseAllData) {
         // The settings changed, so *all* the data needs to be re-parsed.
-        plots.plots = [];
+        lines = [];
         parseFileData(papaParseData);
     }
     else {
@@ -206,7 +178,7 @@ function parseFiles(rawData) {
         parseFileData(rawData);
     }
 
-    // Up to this point we've got everything we need in `plots`,
+    // Up to this point we've got everything we need in `lines`,
     // and all that needs to be done is actually to plot them using Plotly.
 
     // Dictates whether markers will be drawn or not
@@ -216,18 +188,29 @@ function parseFiles(rawData) {
         drawMode += "+markers"
     }
 
+    // Generate the plots array
+    plots = {};
+    for (const line of lines) {
+        let quantityId = line.quantityId;
+        if (!(quantityId in plots)) {
+            plots[quantityId] = [];
+        }
+        plots[quantityId].push(line);
+    }
+
     // For each of the plots, we need to generate a DIV element and make a new Plotly plot
     document.getElementById('plots').innerHTML = '';
-    for (const plot of plots.plots) {
-        let id = `${plot.quantityId}-plot`;
+    for (const quantityId of Object.keys(plots)) {
+        let id = `${quantityId}-plot`;
         document.getElementById("plots").innerHTML += `<div id="${id}" class="plot"></div>\n`;
     }
 
-    for (const plot of plots.plots) {
-        let id = `${plot.quantityId}-plot`;
+    // for (const plot of plots.plots) {
+    for (const [quantityId, plotLines] of Object.entries(plots)) {
+        let id = `${quantityId}-plot`;
 
         let data = [];
-        for (const line of plot.lines) {
+        for (const line of plotLines) {
             let colourString = '';
             if (settings.doOverlayedLines) {
                 colourString = `${line.filename}-${line.key}`;
@@ -251,7 +234,7 @@ function parseFiles(rawData) {
             });
         }
 
-        let quantity = getQuantity(plot.quantityId);
+        let quantity = getQuantity(quantityId);
 
         let layout = {
             title: {
@@ -396,6 +379,16 @@ function parseFileData(rawData) {
             }
         }
 
+
+        function getFilename(file) {
+            let filename = file.name;
+            let cutoff = 20;
+            if (filename.length > cutoff) {
+                filename = `${filename.slice(0, cutoff - 1)}...`;
+            }
+            return filename
+        }
+
         // Categorize the data from fileData into seperate plots
         // This is based on what kind of quantity it is
         for (const key of keys) {
@@ -405,54 +398,49 @@ function parseFileData(rawData) {
                 for (const measurement of sensor.measurements) {
                     if (key === measurement.key) {
                         // We've found a sensor that measures this key
-                        let quantityId = measurement.quantityId;
-
-                        // Get the plot corresponding to this quantity and add a line to it
-                        let plot = plots.getPlot(quantityId);
-
-                        let filename = file.name;
-                        let cutoff = 20;
-                        if (filename.length > cutoff) {
-                            filename = `${filename.slice(0, cutoff - 1)}...`;
-                        }
-                        plot.addLine(filename, key, sensor.id, x, fileData[key]);
+                        lines.push({
+                            filename: getFilename(file),
+                            key: key,
+                            sensorId: sensor.id,
+                            quantityId: measurement.quantityId,
+                            x: x,
+                            y: fileData[key]
+                        });
 
                         foundSensor = true;
                         break;
                     }
                 }
 
-                if (foundSensor) {
-                    break;
-                }
+                if (foundSensor) { break; }
             }
 
-            if (!foundSensor) {
-                // We scanned through all sensors and couldn't identify what sensor this is.
-                // This happens if a sensor isn't in SensorTypes or we're dealing with an EDF file.
+            if (foundSensor) { continue; }
+            // We scanned through all sensors and couldn't identify what sensor this is.
+            // This happens if a sensor isn't in SensorTypes or we're dealing with an EDF file.
 
-                // Lets create a dummy quantity
-                let dummyQuantity = {
-                    id: key,
-                    name: key,
-                    unit: ''
-                }
-                QuantityTypes.push(dummyQuantity);
-
-                // Also add this quantity as a measurement to the unknown sensor sensor
-                getSensor('unknown').measurements.push({
-                    quantityId: key,
-                    key: key
-                })
-
-                let plot = plots.getPlot(key);
-                let filename = file.name;
-                let cutoff = 20;
-                if (filename.length > cutoff) {
-                    filename = `${filename.slice(0, cutoff - 1)}...`;
-                }
-                plot.addLine(filename, key, 'unknown', x, fileData[key]);
+            // Lets create a dummy quantity
+            let dummyQuantity = {
+                id: key,
+                name: key,
+                unit: ''
             }
+            QuantityTypes.push(dummyQuantity);
+
+            // Also add this quantity as a measurement to the unknown sensor sensor
+            getSensor('unknown').measurements.push({
+                quantityId: key,
+                key: key
+            })
+
+            lines.push({
+                filename: getFilename(file),
+                key: key,
+                sensorId: 'unknown',
+                quantityId: key,
+                x: x,
+                y: fileData[key]
+            });
         }
     }
 }
