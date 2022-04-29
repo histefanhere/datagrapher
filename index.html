@@ -17,46 +17,50 @@
     <body>
         <div id="loader" style="display: none;"></div> 
 
-        <div id="upper-control">
-            <div id="control-panel">
-                <input type="file" id="csv" name="csv" accept=".csv, .edf" style="display: none;" multiple />
-                <input type="button" id="add-files-button" value="Add files" onclick="document.getElementById('csv').click();" />
+        <div id="top-box">
 
-                <button id="clear-files-button" onClick="clearFiles()">Clear all</button>
+            <div id="upper-control">
+                <div id="control-panel">
+                    <input type="file" id="csv" name="csv" accept=".csv, .edf" style="display: none;" multiple />
+                    <input type="button" id="add-files-button" value="Add files" onclick="document.getElementById('csv').click();" />
+
+                    <button id="clear-files-button" onClick="clearFiles()">Clear all</button>
+                </div>
+
+                <form id="csvform">
+                    <div>
+                        <input type="checkbox" id="overlayedLinesInput" name="overlayedLinesInput" onclick="saveSettings()" autocomplete="off">
+                        <label for="overlayedLinesInput">Overlap lines into 1 day</label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="expandLinesInput" name="expandLinesInput" onclick="saveSettings()" autocomplete="off">
+                        <label for="expandLinesInput">Individual plots for lines</label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="markersInput" name="markersInput" onclick="saveSettings()" autocomplete="off">
+                        <label for="markersInput">Show data markers</label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="editableInput" name="editableInput" onclick="saveSettings()" autocomplete="off">
+                        <label for="editableInput">Edit text mode</label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="smoothedInput" name="smoothedInput" onclick="saveSettings()" autocomplete="off">
+                        <label for="smoothedInput">Smooth input data</label>
+
+                        <div id="smoothedSliderDiv" class="hidden">
+                            <input type="range" id="smoothedSliderInput" name="smoothedSliderInput" min="0" max="60" step="1" value="10" onchange="saveSettings()" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- <input type="button" onclick="saveSettings()" value="Save"> -->
+                </form>
             </div>
 
-            <form id="csvform">
-                <div>
-                    <input type="checkbox" id="overlayedLinesInput" name="overlayedLinesInput" onclick="saveSettings()" autocomplete="off">
-                    <label for="overlayedLinesInput">Combine Lines</label>
-                </div>
-
-                <div>
-                    <input type="checkbox" id="expandLinesInput" name="expandLinesInput" onclick="saveSettings()" autocomplete="off">
-                    <label for="expandLinesInput">Individual Plots</label>
-                </div>
-
-                <div>
-                    <input type="checkbox" id="markersInput" name="markersInput" onclick="saveSettings()" autocomplete="off">
-                    <label for="markersInput">Show Markers</label>
-                </div>
-
-                <div>
-                    <input type="checkbox" id="editableInput" name="editableInput" onclick="saveSettings()" autocomplete="off">
-                    <label for="editableInput">Edit Mode</label>
-                </div>
-
-                <div>
-                    <input type="checkbox" id="smoothedInput" name="smoothedInput" onclick="saveSettings()" autocomplete="off">
-                    <label for="smoothedInput">Smooth Input</label>
-
-                    <div id="smoothedSliderDiv" class="hidden">
-                        <input type="range" id="smoothedSliderInput" name="smoothedSliderInput" min="0" max="60" step="1" value="10" autocomplete="off">
-                    </div>
-                </div>
-
-                <!-- <input type="button" onclick="saveSettings()" value="Save"> -->
-            </form>
         </div>
 
         <!-- The plot divs will dynamically generate in this div -->

@@ -141,6 +141,7 @@ function getSettings() {
         doOverlayedLines: document.getElementById('overlayedLinesInput').checked,
         doExpandLines: document.getElementById('expandLinesInput').checked,
         doSmoothing: document.getElementById("smoothedInput").checked,
+        SmoothFactor: parseInt(document.getElementById("smoothedSliderInput").value),
         doMarkers: document.getElementById("markersInput").checked,
         doEditable: document.getElementById("editableInput").checked
     }
@@ -162,11 +163,12 @@ function parseFiles(rawData) {
 
     new Promise ((resolve, reject) => {
         document.getElementById("loader").style.display = "block";
+        resolve();
     });
 
     // There are specific settings that require re-parsing of all the data
     let newSettings = getSettings();
-    let reParseAllData = (newSettings.doOverlayedLines != settings.doOverlayedLines) || (newSettings.doSmoothing != settings.doSmoothing)
+    let reParseAllData = (newSettings.doOverlayedLines != settings.doOverlayedLines) || (newSettings.doSmoothing != settings.doSmoothing) || (newSettings.SmoothFactor |= settings.SmoothFactor);
     settings = newSettings;
 
     for (rawFileData of rawData) {
