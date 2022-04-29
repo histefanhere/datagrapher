@@ -27,35 +27,35 @@
 
             <form id="csvform">
                 <div>
-                    <input type="checkbox" id="overlayedLinesInput" name="overlayedLinesInput" autocomplete="off">
+                    <input type="checkbox" id="overlayedLinesInput" name="overlayedLinesInput" onclick="saveSettings()" autocomplete="off">
                     <label for="overlayedLinesInput">Combine Lines</label>
                 </div>
 
                 <div>
-                    <input type="checkbox" id="expandLinesInput" name="expandLinesInput" autocomplete="off">
+                    <input type="checkbox" id="expandLinesInput" name="expandLinesInput" onclick="saveSettings()" autocomplete="off">
                     <label for="expandLinesInput">Individual Plots</label>
                 </div>
-    
+
                 <div>
-                    <input type="checkbox" id="markersInput" name="markersInput" autocomplete="off">
+                    <input type="checkbox" id="markersInput" name="markersInput" onclick="saveSettings()" autocomplete="off">
                     <label for="markersInput">Show Markers</label>
                 </div>
 
                 <div>
-                    <input type="checkbox" id="editableInput" name="editableInput" autocomplete="off">
+                    <input type="checkbox" id="editableInput" name="editableInput" onclick="saveSettings()" autocomplete="off">
                     <label for="editableInput">Edit Mode</label>
                 </div>
 
                 <div>
-                    <input type="checkbox" id="smoothedInput" name="smoothedInput" autocomplete="off">
+                    <input type="checkbox" id="smoothedInput" name="smoothedInput" onclick="saveSettings()" autocomplete="off">
                     <label for="smoothedInput">Smooth Input</label>
 
                     <div id="smoothedSliderDiv" class="hidden">
                         <input type="range" id="smoothedSliderInput" name="smoothedSliderInput" min="0" max="60" step="1" value="10" autocomplete="off">
                     </div>
                 </div>
-    
-                <input type="button" onclick="saveSettings()" value="Save">
+
+                <!-- <input type="button" onclick="saveSettings()" value="Save"> -->
             </form>
         </div>
 

@@ -4,9 +4,7 @@
   - Makes everything zoom in together
   - OR multiple "synced" plots like in [this S.O. answer](https://stackoverflow.com/a/48192606/7718130)
 - Do I even need to clear the input element? https://stackoverflow.com/questions/1703228/how-can-i-clear-an-html-file-input-with-javascript/16222877
-- seperate plots for every line option
 - warning if 'combine lines' and 'individual plots' is enabled
-- live update settings
 
 
 # Ehhh....
@@ -18,6 +16,8 @@
 
 # Completed
 
+- live update settings
+- seperate plots for every line option
 - make a loader (esp for parsing files) using [tutorial](https://www.w3schools.com/howto/howto_css_loader.asp)
 - increase resolution of combined lines to include seconds
 - if combined lines is ticked, there can be a bunch of values at the same X - these need to be averaged
