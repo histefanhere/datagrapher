@@ -156,9 +156,9 @@ const SensorTypes = [
             {quantityId: 'vocindex',        key: 'MCUV'},
         ]
     },
-    {
-        id: 'ds18b20', name: 'DS18 1', measurements: [{quantityId: 'temperature',     key: 'Temp1'}]
-    },
+    // {
+    //     id: 'ds18b20', name: 'DS18 1', measurements: [{quantityId: 'temperature',     key: 'Temp1'}]
+    // },
     {
         id: 'ds18b20_1', name: '18B20_1', measurements: [{quantityId: 'temperature', key: 'Temp1'}]
     },

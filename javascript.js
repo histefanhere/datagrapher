@@ -125,11 +125,11 @@ function processChunk(chunk) {
 Called when the user clicks the "clear all files" button
 */
 function clearFiles() {
-    if (confirm("Are you sure you want to clear all files?")) {
+    // if (confirm("Are you sure you want to clear all files?")) {
         document.getElementById('plots').innerHTML = '';
         lines = [];
         papaParseData = [];
-    }
+    // }
 }
 
 
@@ -139,6 +139,7 @@ Gets the current settings configuration
 function getSettings() {
     return {
         doOverlayedLines: document.getElementById('overlayedLinesInput').checked,
+        doExpandLines: document.getElementById('expandLinesInput').checked,
         doSmoothing: document.getElementById("smoothedInput").checked,
         doMarkers: document.getElementById("markersInput").checked,
         doEditable: document.getElementById("editableInput").checked
@@ -153,15 +154,16 @@ function saveSettings() {
     parseFiles([]);
 }
 
-
 /*
 Called when parsing of the CSV file is complete.
 We want to do some more post-processing on the data before finally displaying it in plots.
 */
 function parseFiles(rawData) {
 
-    document.getElementById("loader").style.display = "block";
-    
+    new Promise ((resolve, reject) => {
+        document.getElementById("loader").style.display = "block";
+    });
+
     // There are specific settings that require re-parsing of all the data
     let newSettings = getSettings();
     let reParseAllData = (newSettings.doOverlayedLines != settings.doOverlayedLines) || (newSettings.doSmoothing != settings.doSmoothing)
@@ -192,28 +194,59 @@ function parseFiles(rawData) {
     }
 
     // Generate the plots array
-    plots = {};
-    for (const line of lines) {
-        let quantityId = line.quantityId;
-        if (!(quantityId in plots)) {
-            plots[quantityId] = [];
+    plots = [];
+    /*
+    plots[0] = {
+        id: 'banana',
+        lines: [...],
+        quantityId: 'banana',
+        title: 'banana'
+    }
+    */
+
+    if (settings.doExpandLines) {
+        for (const line of lines) {
+            plots.push({
+                id: `${line.quantityId}-${line.key}-${line.filename}-plot`,
+                lines: [line],
+                quantityId: line.quantityId,
+                title: `${getQuantity(line.quantityId).name} (${getSensor(line.sensorId).name} ${line.key})`
+            });
         }
-        plots[quantityId].push(line);
+    }
+    else {
+        for (const line of lines) {
+            let foundPlot = false;
+            for (const plot of plots) {
+                if (plot.quantityId == line.quantityId) {
+                    plot.lines.push(line);
+                    foundPlot = true;
+                    break;
+                }
+            }
+
+            if (foundPlot) { continue; }
+
+            plots.push({
+                id: `${line.quantityId}-plot`,
+                lines: [line],
+                quantityId: line.quantityId,
+                title: `${getQuantity(line.quantityId).name}`
+            });
+        }
     }
 
     // For each of the plots, we need to generate a DIV element and make a new Plotly plot
     document.getElementById('plots').innerHTML = '';
-    for (const quantityId of Object.keys(plots)) {
-        let id = `${quantityId}-plot`;
-        document.getElementById("plots").innerHTML += `<div id="${id}" class="plot"></div>\n`;
+    for (const plot of plots) {
+        document.getElementById("plots").innerHTML += `<div id="${plot.id}" class="plot"></div>\n`;
     }
 
-    // for (const plot of plots.plots) {
-    for (const [quantityId, plotLines] of Object.entries(plots)) {
-        let id = `${quantityId}-plot`;
+    let plotlyPromises = [];
 
+    for (const plot of plots) {
         let data = [];
-        for (const line of plotLines) {
+        for (const line of plot.lines) {
             let colourString = '';
             if (settings.doOverlayedLines) {
                 colourString = `${line.filename}-${line.key}`;
@@ -237,11 +270,9 @@ function parseFiles(rawData) {
             });
         }
 
-        let quantity = getQuantity(quantityId);
-
         let layout = {
             title: {
-                text: `${quantity.name}`
+                text: plot.title
             },
             showlegend: true,
             legend: {
@@ -261,10 +292,13 @@ function parseFiles(rawData) {
             responsive: true
         };
 
-        Plotly.newPlot(id, data, layout, config);
+        plotlyPromises.push(Plotly.newPlot(plot.id, data, layout, config));
     }
 
-    document.getElementById("loader").style.display = "none";
+    // Remove the loader once all the plots have been shown
+    Promise.all(plotlyPromises).then((values) => {
+        document.getElementById("loader").style.display = "none";
+    });
 }
 
 /*
