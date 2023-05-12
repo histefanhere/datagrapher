@@ -230,6 +230,16 @@ const SensorTypes = [
     },
     {
         id: 'ds18b20_24', name: '18B20_24', measurements: [{quantityId: 'temperature', key: 'Temp24'}]
+    },
+    {
+        id: 'lm45',
+        name: 'LM45',
+        measurements: [
+            {quantityId: 'temperature',     key: 'LM45_0'},
+            {quantityId: 'temperature',     key: 'LM45_1'},
+            {quantityId: 'temperature',     key: 'LM45_2'},
+            {quantityId: 'temperature',     key: 'LM45_3'},
+        ]
     }
 ];
 
