@@ -322,32 +322,32 @@ function parseFileData(rawData) {
                 continue;
             }
 
-            if (file.name.includes(".edf")) {
-                // FIX FOR EDF files - we need to add +12 Hours to convert to propper timezone!
-                unix_timestamp = unix_timestamp + 60 * 60 * 12
+            if (file.name.toLowerCase().includes(".csv")) {
+                // FIX FOR CSV files - timestamp is in milliseconds in current timezone, needs to be converted to UTC
+                unix_timestamp = unix_timestamp + new Date().getTimezoneOffset() * 60;
             }
 
             // Get all the time parameters from the generated `date` object and push the resulting string into our x values array
             let date = new Date(unix_timestamp * 1000);
-            let hours = ("0" + date.getUTCHours()).slice(-2);
+            let hours = ("0" + date.getHours()).slice(-2);
             let minutes = 0;
             if (settings.doOverlayedLines) {
-                minutes = ("0" + Math.round(date.getUTCMinutes() / 6 * 10)).slice(-2);
+                minutes = ("0" + Math.round(date.getMinutes() / 6 * 10)).slice(-2);
             }
             else {
-                minutes = ("0" + date.getUTCMinutes()).slice(-2);
+                minutes = ("0" + date.getMinutes()).slice(-2);
             }
             let seconds = 0;
             if (settings.doOverlayedLines) {
-                seconds = ("0" + Math.round(date.getUTCSeconds() / 6 * 10)).slice(-2);
+                seconds = ("0" + Math.round(date.getSeconds() / 6 * 10)).slice(-2);
             }
             else {
-                seconds = ("0" + date.getUTCSeconds()).slice(-2);
+                seconds = ("0" + date.getSeconds()).slice(-2);
             }
             // let seconds = ("0" + date.getUTCSeconds()).slice(-2);
-            let days = ("0" + date.getUTCDate()).slice(-2);
-            let month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
-            let year = date.getUTCFullYear();
+            let days = ("0" + date.getDate()).slice(-2);
+            let month = ("0" + (date.getMonth() + 1)).slice(-2);
+            let year = date.getFullYear();
             
             if (settings.doOverlayedLines) {
                 // let statement = /\d+-\d+-\d+ (\d+):(\d+):\d+/g;
