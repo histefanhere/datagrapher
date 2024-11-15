@@ -15,6 +15,20 @@ $ make
 ```
 Done! Now open `index.html`
 
+## Building
+
+To build project and run live:
+
+```
+npm start
+```
+
+To build installer:
+
+```
+npm run make
+```
+
 ## Usage
 
 This is only meant to serve a specific purpose for a specific client, but for those who are curious this is how it works.
