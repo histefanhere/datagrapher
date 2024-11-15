@@ -1,6 +1,6 @@
 {
   "name": "datagrapher",
-  "version": "1.0.0",
+  "version": "5.0.0",
   "description": "Simple data grapher",
   "main": "main.js",
   "scripts": {
